@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form view - Phiếu nhập kho -->
+    <record id="view_warehouse_receipt_form" model="ir.ui.view">
+        <field name="name">taphoa.warehouse.receipt.form</field>
+        <field name="model">taphoa.warehouse.receipt</field>
+        <field name="arch" type="xml">
+            <form string="Phiếu nhập kho">
+                <header>
+                    <button name="action_quality_check" string="Kiểm tra chất lượng" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Phê duyệt" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'quality_check'"
+                            groups="taphoa_management.group_taphoa_manager"/>
+                    <button name="action_done" string="Hoàn thành" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'approved'"/>
+                    <button name="action_cancel" string="Hủy" 
+                            type="object" 
+                            invisible="state in ['done', 'cancel']"/>
+                    <button name="action_draft" string="Chuyển về nháp" 
+                            type="object" 
+                            invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,quality_check,approved,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="warehouse_id" options="{'no_create': True}"/>
+                            <field name="purchase_order_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="receipt_date"/>
+                            <field name="checked_by" readonly="1" invisible="state == 'draft'"/>
+                            <field name="checked_date" readonly="1" invisible="state == 'draft'"/>
+                            <field name="approved_by" readonly="1" invisible="state not in ['approved', 'done']"/>
+                            <field name="approved_date" readonly="1" invisible="state not in ['approved', 'done']"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Chi tiết sản phẩm">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="subtotal"/>
+                                    <field name="expiry_date"/>
+                                    <field name="lot_name"/>
+                                    <field name="quality_status"/>
+                                    <field name="notes"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_amount" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Kiểm tra chất lượng" invisible="state == 'draft'">
+                            <field name="quality_check_note"/>
+                        </page>
+                        <page string="Ghi chú">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view - Phiếu nhập kho -->
+    <record id="view_warehouse_receipt_tree" model="ir.ui.view">
+        <field name="name">taphoa.warehouse.receipt.tree</field>
+        <field name="model">taphoa.warehouse.receipt</field>
+        <field name="arch" type="xml">
+            <tree string="Phiếu nhập kho" decoration-info="state == 'draft'" 
+                  decoration-warning="state == 'quality_check'" 
+                  decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="receipt_date"/>
+                <field name="partner_id"/>
+                <field name="warehouse_id"/>
+                <field name="total_amount" widget="monetary"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ['quality_check', 'approved']"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancel'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Search view - Phiếu nhập kho -->
+    <record id="view_warehouse_receipt_search" model="ir.ui.view">
+        <field name="name">taphoa.warehouse.receipt.search</field>
+        <field name="model">taphoa.warehouse.receipt</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm phiếu nhập kho">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="warehouse_id"/>
+                <filter name="draft" string="Nháp" domain="[('state', '=', 'draft')]"/>
+                <filter name="quality_check" string="Kiểm tra CL" domain="[('state', '=', 'quality_check')]"/>
+                <filter name="approved" string="Đã duyệt" domain="[('state', '=', 'approved')]"/>
+                <filter name="done" string="Hoàn thành" domain="[('state', '=', 'done')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_partner" string="Nhà cung cấp" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_warehouse" string="Kho" context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_state" string="Trạng thái" context="{'group_by': 'state'}"/>
+                    <filter name="group_date" string="Ngày nhập" context="{'group_by': 'receipt_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action - Phiếu nhập kho -->
+    <record id="action_warehouse_receipt" model="ir.actions.act_window">
+        <field name="name">Phiếu nhập kho</field>
+        <field name="res_model">taphoa.warehouse.receipt</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo phiếu nhập kho mới
+            </p>
+            <p>
+                Quản lý việc nhập hàng từ nhà cung cấp vào kho.
+            </p>
+        </field>
+    </record>
+
+    <!-- Form view - Kiểm kê kho -->
+    <record id="view_stock_check_form" model="ir.ui.view">
+        <field name="name">taphoa.stock.check.form</field>
+        <field name="model">taphoa.stock.check</field>
+        <field name="arch" type="xml">
+            <form string="Kiểm kê kho">
+                <header>
+                    <button name="action_start_check" string="Bắt đầu kiểm kê" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_done" string="Hoàn thành" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Hủy" 
+                            type="object" 
+                            invisible="state in ['done', 'cancel']"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="warehouse_id"/>
+                            <field name="location_id"/>
+                        </group>
+                        <group>
+                            <field name="check_date"/>
+                            <field name="responsible_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Chi tiết kiểm kê">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="system_qty"/>
+                                    <field name="actual_qty"/>
+                                    <field name="difference_qty"/>
+                                    <field name="unit_price"/>
+                                    <field name="difference_value" widget="monetary"/>
+                                    <field name="notes"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_difference_value" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Ghi chú">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view - Kiểm kê kho -->
+    <record id="view_stock_check_tree" model="ir.ui.view">
+        <field name="name">taphoa.stock.check.tree</field>
+        <field name="model">taphoa.stock.check</field>
+        <field name="arch" type="xml">
+            <tree string="Kiểm kê kho" decoration-info="state == 'draft'" 
+                  decoration-warning="state == 'in_progress'" 
+                  decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="check_date"/>
+                <field name="warehouse_id"/>
+                <field name="location_id"/>
+                <field name="responsible_id"/>
+                <field name="total_difference_value" widget="monetary"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancel'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Action - Kiểm kê kho -->
+    <record id="action_stock_check" model="ir.actions.act_window">
+        <field name="name">Kiểm kê kho</field>
+        <field name="res_model">taphoa.stock.check</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo phiếu kiểm kê mới
+            </p>
+            <p>
+                Kiểm kê định kỳ để đối soát số lượng hàng hóa trong kho.
+            </p>
+        </field>
+    </record>
+
+</odoo>

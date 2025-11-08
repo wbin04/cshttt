@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dashboard for Manager -->
+    <record id="view_manager_dashboard" model="ir.ui.view">
+        <field name="name">taphoa.manager.dashboard</field>
+        <field name="model">taphoa.accounting.report</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" create="false" edit="false">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="total_revenue"/>
+                <field name="total_expense"/>
+                <field name="total_profit"/>
+                <field name="total_debt"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_dashboard">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary">
+                                        <field name="name"/>
+                                    </div>
+                                    <div class="o_secondary">
+                                        <field name="date_from"/> - <field name="date_to"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="container o_kanban_card_content">
+                                <div class="row">
+                                    <div class="col-6 o_kanban_primary_left">
+                                        <button class="btn btn-primary" name="action_generate_report" type="object">
+                                            <span>Doanh thu</span><br/>
+                                            <field name="total_revenue" widget="monetary"/>
+                                        </button>
+                                    </div>
+                                    <div class="col-6 o_kanban_primary_right">
+                                        <button class="btn btn-warning" name="action_generate_report" type="object">
+                                            <span>Chi phí</span><br/>
+                                            <field name="total_expense" widget="monetary"/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-6 o_kanban_primary_left">
+                                        <button class="btn btn-success" name="action_generate_report" type="object">
+                                            <span>Lợi nhuận</span><br/>
+                                            <field name="total_profit" widget="monetary"/>
+                                        </button>
+                                    </div>
+                                    <div class="col-6 o_kanban_primary_right">
+                                        <button class="btn btn-danger" name="action_generate_report" type="object">
+                                            <span>Công nợ</span><br/>
+                                            <field name="total_debt" widget="monetary"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action - Dashboard -->
+    <record id="action_manager_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard Chủ cửa hàng</field>
+        <field name="res_model">taphoa.accounting.report</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="context">{'search_default_current_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chào mừng đến Dashboard
+            </p>
+            <p>
+                Xem tổng quan doanh thu, chi phí, lợi nhuận và công nợ của cửa hàng.
+            </p>
+        </field>
+    </record>
+
+</odoo>

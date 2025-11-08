@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report - Stock Report -->
+    <record id="action_report_stock" model="ir.actions.report">
+        <field name="name">Báo cáo tồn kho</field>
+        <field name="model">taphoa.stock.check</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">taphoa_management.report_stock_check</field>
+        <field name="report_file">taphoa_management.report_stock_check</field>
+        <field name="binding_model_id" ref="model_taphoa_stock_check"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_stock_check">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Phiếu kiểm kê kho</h2>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Số phiếu:</strong> <span t-field="o.name"/><br/>
+                                <strong>Ngày kiểm kê:</strong> <span t-field="o.check_date"/><br/>
+                                <strong>Kho:</strong> <span t-field="o.warehouse_id.name"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Vị trí:</strong> <span t-field="o.location_id.name"/><br/>
+                                <strong>Người chịu trách nhiệm:</strong> <span t-field="o.responsible_id.name"/><br/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-right">SL Hệ thống</th>
+                                    <th class="text-right">SL Thực tế</th>
+                                    <th class="text-right">Chênh lệch</th>
+                                    <th class="text-right">Đơn giá</th>
+                                    <th class="text-right">Giá trị CL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="line">
+                                    <td><span t-field="line.product_id.name"/></td>
+                                    <td class="text-right"><span t-field="line.system_qty"/></td>
+                                    <td class="text-right"><span t-field="line.actual_qty"/></td>
+                                    <td class="text-right"><span t-field="line.difference_qty"/></td>
+                                    <td class="text-right"><span t-field="line.unit_price"/></td>
+                                    <td class="text-right"><span t-field="line.difference_value"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <p t-if="o.notes">
+                                    <strong>Ghi chú:</strong><br/>
+                                    <span t-field="o.notes"/>
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Tổng chênh lệch:</strong></td>
+                                        <td class="text-right">
+                                            <span t-field="o.total_difference_value"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

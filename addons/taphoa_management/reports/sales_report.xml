@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report - Sales Report -->
+    <record id="action_report_pos_order" model="ir.actions.report">
+        <field name="name">Hóa đơn bán hàng</field>
+        <field name="model">pos.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">taphoa_management.report_pos_order_taphoa</field>
+        <field name="report_file">taphoa_management.report_pos_order_taphoa</field>
+        <field name="binding_model_id" ref="point_of_sale.model_pos_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_pos_order_taphoa">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h2>HÓA ĐƠN BÁN HÀNG</h2>
+                            <p><strong><span t-field="o.name"/></strong></p>
+                        </div>
+
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Khách hàng:</strong> <span t-field="o.partner_id.name"/><br/>
+                                <span t-if="o.customer_phone">
+                                    <strong>Số điện thoại:</strong> <span t-field="o.customer_phone"/><br/>
+                                </span>
+                                <span t-if="o.customer_address">
+                                    <strong>Địa chỉ:</strong> <span t-field="o.customer_address"/><br/>
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Ngày:</strong> <span t-field="o.date_order"/><br/>
+                                <strong>Thu ngân:</strong> <span t-field="o.user_id.name"/><br/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-right">SL</th>
+                                    <th class="text-right">Đơn giá</th>
+                                    <th class="text-right">Giảm giá</th>
+                                    <th class="text-right">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.lines" t-as="line">
+                                    <td><span t-field="line.product_id.name"/></td>
+                                    <td class="text-right"><span t-field="line.qty"/></td>
+                                    <td class="text-right"><span t-field="line.price_unit"/></td>
+                                    <td class="text-right"><span t-field="line.discount"/>%</td>
+                                    <td class="text-right"><span t-field="line.price_subtotal_incl"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <p t-if="o.cashier_note">
+                                    <strong>Ghi chú:</strong><br/>
+                                    <span t-field="o.cashier_note"/>
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Tổng tiền:</strong></td>
+                                        <td class="text-right">
+                                            <span t-field="o.amount_total"/>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="o.is_debt">
+                                        <td><strong>Đã thanh toán:</strong></td>
+                                        <td class="text-right">
+                                            <span t-esc="o.amount_total - o.debt_amount"/>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="o.is_debt">
+                                        <td><strong>Còn nợ:</strong></td>
+                                        <td class="text-right">
+                                            <span t-field="o.debt_amount"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt32">
+                            <p><strong>Cảm ơn quý khách!</strong></p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

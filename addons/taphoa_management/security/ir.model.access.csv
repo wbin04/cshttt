@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_taphoa_warehouse_receipt_user,taphoa.warehouse.receipt.user,model_taphoa_warehouse_receipt,group_taphoa_warehouse,1,1,1,0
+access_taphoa_warehouse_receipt_manager,taphoa.warehouse.receipt.manager,model_taphoa_warehouse_receipt,group_taphoa_manager,1,1,1,1
+access_taphoa_warehouse_receipt_line_user,taphoa.warehouse.receipt.line.user,model_taphoa_warehouse_receipt_line,group_taphoa_warehouse,1,1,1,0
+access_taphoa_warehouse_receipt_line_manager,taphoa.warehouse.receipt.line.manager,model_taphoa_warehouse_receipt_line,group_taphoa_manager,1,1,1,1
+access_taphoa_stock_check_user,taphoa.stock.check.user,model_taphoa_stock_check,group_taphoa_warehouse,1,1,1,0
+access_taphoa_stock_check_manager,taphoa.stock.check.manager,model_taphoa_stock_check,group_taphoa_manager,1,1,1,1
+access_taphoa_stock_check_line_user,taphoa.stock.check.line.user,model_taphoa_stock_check_line,group_taphoa_warehouse,1,1,1,0
+access_taphoa_stock_check_line_manager,taphoa.stock.check.line.manager,model_taphoa_stock_check_line,group_taphoa_manager,1,1,1,1
+access_taphoa_accounting_report_accountant,taphoa.accounting.report.accountant,model_taphoa_accounting_report,group_taphoa_accountant,1,1,1,0
+access_taphoa_accounting_report_manager,taphoa.accounting.report.manager,model_taphoa_accounting_report,group_taphoa_manager,1,1,1,1
