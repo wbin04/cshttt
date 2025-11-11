@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Chương trình tích điểm -->
+    <record id="view_customer_loyalty_program_tree" model="ir.ui.view">
+        <field name="name">customer.loyalty.program.tree</field>
+        <field name="model">customer.loyalty.program</field>
+        <field name="arch" type="xml">
+            <tree string="Chương trình tích điểm">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="points_per_amount"/>
+                <field name="points_to_discount_rate" widget="monetary"/>
+                <field name="min_points_to_redeem"/>
+                <field name="active_customers"/>
+                <field name="total_points_awarded"/>
+                <field name="total_points_redeemed"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_customer_loyalty_program_form" model="ir.ui.view">
+        <field name="name">customer.loyalty.program.form</field>
+        <field name="model">customer.loyalty.program</field>
+        <field name="arch" type="xml">
+            <form string="Chương trình tích điểm">
+                <sheet>
+                    <widget name="web_ribbon" title="Ngưng hoạt động" 
+                            bg_color="bg-danger" 
+                            invisible="active"/>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Tên chương trình..." required="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="basic_info" string="Thông tin cơ bản">
+                            <field name="sequence"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group name="statistics" string="Thống kê">
+                            <field name="total_points_awarded"/>
+                            <field name="total_points_redeemed"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Quy tắc tích điểm" name="earning_rules">
+                            <group>
+                                <group string="Tích điểm">
+                                    <label for="points_per_amount"/>
+                                    <div class="o_row">
+                                        <field name="points_per_amount"/>
+                                        <span>điểm/đồng</span>
+                                    </div>
+                                    <field name="min_order_amount" widget="monetary"/>
+                                </group>
+                                <group string="Hết hạn">
+                                    <label for="points_expiry_days"/>
+                                    <div class="o_row">
+                                        <field name="points_expiry_days"/>
+                                        <span>ngày (0 = không hết hạn)</span>
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <strong>Ví dụ:</strong> Nếu points_per_amount = 0.001, khách hàng chi 10,000đ sẽ được 10 điểm.
+                            </div>
+                        </page>
+                        
+                        <page string="Quy tắc đổi điểm" name="redemption_rules">
+                            <group>
+                                <group string="Quy đổi điểm">
+                                    <label for="points_to_discount_rate"/>
+                                    <div class="o_row">
+                                        <span>1 điểm =</span>
+                                        <field name="points_to_discount_rate" widget="monetary"/>
+                                    </div>
+                                    <field name="min_points_to_redeem"/>
+                                </group>
+                                <group string="Giới hạn">
+                                    <label for="max_discount_percentage"/>
+                                    <div class="o_row">
+                                        <field name="max_discount_percentage"/>
+                                        <span>%</span>
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <strong>Ví dụ:</strong> Nếu points_to_discount_rate = 1,000đ và max_discount_percentage = 50%, 
+                                khách hàng có 100 điểm mua đơn hàng 150,000đ sẽ được giảm tối đa 75,000đ (50% của 150,000đ).
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_customer_loyalty_program" model="ir.actions.act_window">
+        <field name="name">Chương trình tích điểm</field>
+        <field name="res_model">customer.loyalty.program</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo chương trình tích điểm mới
+            </p>
+            <p>
+                Thiết lập quy tắc tích điểm và đổi điểm để khuyến khích khách hàng quay lại.
+            </p>
+        </field>
+    </record>
+
+    <!-- Thẻ tích điểm -->
+    <record id="view_customer_loyalty_card_tree" model="ir.ui.view">
+        <field name="name">customer.loyalty.card.tree</field>
+        <field name="model">customer.loyalty.card</field>
+        <field name="arch" type="xml">
+            <tree string="Thẻ tích điểm" decoration-muted="state != 'active'">
+                <field name="card_number"/>
+                <field name="partner_id"/>
+                <field name="program_id"/>
+                <field name="total_points" sum="Total Points"/>
+                <field name="earned_points"/>
+                <field name="redeemed_points"/>
+                <field name="issue_date"/>
+                <field name="state" widget="badge" 
+                       decoration-success="state == 'active'" 
+                       decoration-warning="state == 'suspended'"
+                       decoration-danger="state == 'expired'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_customer_loyalty_card_form" model="ir.ui.view">
+        <field name="name">customer.loyalty.card.form</field>
+        <field name="model">customer.loyalty.card</field>
+        <field name="arch" type="xml">
+            <form string="Thẻ tích điểm">
+                <header>
+                    <button name="action_view_transactions" 
+                            string="Xem giao dịch" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="active,suspended,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="card_number" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Thông tin thẻ">
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="program_id" options="{'no_create': True}"/>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                        </group>
+                        <group string="Điểm tích lũy">
+                            <field name="earned_points" readonly="1"/>
+                            <field name="redeemed_points" readonly="1"/>
+                            <field name="total_points" readonly="1" class="oe_read_only" 
+                                   style="font-size: 24px; font-weight: bold; color: green;"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Lịch sử giao dịch" name="transactions">
+                            <field name="transaction_ids" readonly="1">
+                                <tree decoration-success="transaction_type == 'earn'" 
+                                      decoration-danger="transaction_type == 'redeem'">
+                                    <field name="transaction_date"/>
+                                    <field name="name"/>
+                                    <field name="transaction_type"/>
+                                    <field name="points"/>
+                                    <field name="order_amount" widget="monetary"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_customer_loyalty_card_search" model="ir.ui.view">
+        <field name="name">customer.loyalty.card.search</field>
+        <field name="model">customer.loyalty.card</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm thẻ tích điểm">
+                <field name="card_number"/>
+                <field name="partner_id"/>
+                <field name="program_id"/>
+                <filter string="Đang hoạt động" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="Tạm ngưng" name="suspended" domain="[('state', '=', 'suspended')]"/>
+                <filter string="Hết hạn" name="expired" domain="[('state', '=', 'expired')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Chương trình" name="group_program" context="{'group_by': 'program_id'}"/>
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_customer_loyalty_card" model="ir.actions.act_window">
+        <field name="name">Thẻ tích điểm</field>
+        <field name="res_model">customer.loyalty.card</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo thẻ tích điểm cho khách hàng
+            </p>
+            <p>
+                Khách hàng sẽ tích điểm từ các giao dịch mua hàng và có thể đổi điểm để nhận ưu đãi.
+            </p>
+        </field>
+    </record>
+
+    <!-- Giao dịch tích điểm -->
+    <record id="view_customer_loyalty_transaction_tree" model="ir.ui.view">
+        <field name="name">customer.loyalty.transaction.tree</field>
+        <field name="model">customer.loyalty.transaction</field>
+        <field name="arch" type="xml">
+            <tree string="Giao dịch tích điểm" 
+                  decoration-success="transaction_type == 'earn'" 
+                  decoration-danger="transaction_type == 'redeem'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="transaction_date"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="card_id"/>
+                <field name="transaction_type"/>
+                <field name="points"/>
+                <field name="order_amount" widget="monetary"/>
+                <field name="pos_order_id"/>
+                <field name="expiry_date"/>
+                <field name="state" widget="badge" 
+                       decoration-success="state == 'confirmed'"
+                       decoration-info="state == 'draft'"
+                       decoration-danger="state in ['cancelled', 'expired']"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_customer_loyalty_transaction_form" model="ir.ui.view">
+        <field name="name">customer.loyalty.transaction.form</field>
+        <field name="model">customer.loyalty.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Giao dịch tích điểm">
+                <header>
+                    <button name="action_confirm" 
+                            string="Xác nhận" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_cancel" 
+                            string="Hủy" 
+                            type="object"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Thông tin giao dịch">
+                            <field name="transaction_type"/>
+                            <field name="transaction_date"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="card_id" options="{'no_create': True}"/>
+                            <field name="program_id" readonly="1"/>
+                        </group>
+                        <group string="Chi tiết">
+                            <field name="points" 
+                                   class="oe_read_only" 
+                                   style="font-size: 20px; font-weight: bold;"/>
+                            <field name="order_amount" widget="monetary"/>
+                            <field name="pos_order_id" readonly="1"/>
+                            <field name="expiry_date"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="note" placeholder="Ghi chú về giao dịch..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_customer_loyalty_transaction_search" model="ir.ui.view">
+        <field name="name">customer.loyalty.transaction.search</field>
+        <field name="model">customer.loyalty.transaction</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm giao dịch">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="card_id"/>
+                <field name="pos_order_id"/>
+                <filter string="Tích điểm" name="earn" domain="[('transaction_type', '=', 'earn')]"/>
+                <filter string="Đổi điểm" name="redeem" domain="[('transaction_type', '=', 'redeem')]"/>
+                <filter string="Đã xác nhận" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <separator/>
+                <filter string="Hôm nay" name="today" 
+                        domain="[('transaction_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                ('transaction_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="Tuần này" name="this_week" 
+                        domain="[('transaction_date', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <filter string="Tháng này" name="this_month" 
+                        domain="[('transaction_date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Loại giao dịch" name="group_type" context="{'group_by': 'transaction_type'}"/>
+                    <filter string="Khách hàng" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Chương trình" name="group_program" context="{'group_by': 'program_id'}"/>
+                    <filter string="Ngày" name="group_date" context="{'group_by': 'transaction_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_customer_loyalty_transaction" model="ir.actions.act_window">
+        <field name="name">Giao dịch tích điểm</field>
+        <field name="res_model">customer.loyalty.transaction</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_confirmed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có giao dịch nào
+            </p>
+            <p>
+                Giao dịch tích điểm sẽ được tự động tạo khi khách hàng mua hàng hoặc đổi điểm.
+            </p>
+        </field>
+    </record>
+
+    <!-- Thêm vào view Partner/Customer -->
+    <record id="view_partner_form_loyalty" model="ir.ui.view">
+        <field name="name">res.partner.form.loyalty</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_loyalty_cards" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-credit-card"
+                        invisible="loyalty_card_count == 0">
+                    <field name="loyalty_card_count" widget="statinfo" string="Thẻ tích điểm"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']" position="after">
+                <page string="Tích điểm" name="loyalty" invisible="loyalty_card_count == 0">
+                    <group>
+                        <group>
+                            <field name="total_loyalty_points" readonly="1" 
+                                   style="font-size: 20px; font-weight: bold; color: green;"/>
+                        </group>
+                    </group>
+                    <field name="loyalty_card_ids" readonly="1">
+                        <tree>
+                            <field name="card_number"/>
+                            <field name="program_id"/>
+                            <field name="total_points"/>
+                            <field name="state" widget="badge"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menu items -->
+    <menuitem id="menu_loyalty_root"
+              name="Tích điểm"
+              parent="menu_taphoa_root"
+              sequence="45"/>
+
+    <menuitem id="menu_loyalty_program"
+              name="Chương trình"
+              parent="menu_loyalty_root"
+              action="action_customer_loyalty_program"
+              sequence="10"/>
+
+    <menuitem id="menu_loyalty_cards"
+              name="Thẻ tích điểm"
+              parent="menu_loyalty_root"
+              action="action_customer_loyalty_card"
+              sequence="20"/>
+
+    <menuitem id="menu_loyalty_transactions"
+              name="Giao dịch"
+              parent="menu_loyalty_root"
+              action="action_customer_loyalty_transaction"
+              sequence="30"/>
+
+</odoo>

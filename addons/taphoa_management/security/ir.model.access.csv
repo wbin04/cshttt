@@ -15,4 +15,13 @@ access_taphoa_manager_dashboard_warehouse,taphoa.manager.dashboard.warehouse,mod
 access_taphoa_manager_dashboard_accountant,taphoa.manager.dashboard.accountant,model_taphoa_manager_dashboard,group_taphoa_accountant,1,0,0,0
 access_wizard_stock_import_all,wizard.stock.import.all,model_wizard_stock_import,base.group_user,1,1,1,1
 access_wizard_fix_products_all,wizard.fix.products.all,model_wizard_fix_products,base.group_user,1,1,1,1
+access_customer_loyalty_program_manager,customer.loyalty.program.manager,model_customer_loyalty_program,group_taphoa_manager,1,1,1,1
+access_customer_loyalty_program_cashier,customer.loyalty.program.cashier,model_customer_loyalty_program,group_taphoa_cashier,1,0,0,0
+access_customer_loyalty_program_all,customer.loyalty.program.all,model_customer_loyalty_program,base.group_user,1,0,0,0
+access_customer_loyalty_card_manager,customer.loyalty.card.manager,model_customer_loyalty_card,group_taphoa_manager,1,1,1,1
+access_customer_loyalty_card_cashier,customer.loyalty.card.cashier,model_customer_loyalty_card,group_taphoa_cashier,1,1,1,0
+access_customer_loyalty_card_all,customer.loyalty.card.all,model_customer_loyalty_card,base.group_user,1,0,0,0
+access_customer_loyalty_transaction_manager,customer.loyalty.transaction.manager,model_customer_loyalty_transaction,group_taphoa_manager,1,1,1,1
+access_customer_loyalty_transaction_cashier,customer.loyalty.transaction.cashier,model_customer_loyalty_transaction,group_taphoa_cashier,1,1,1,0
+access_customer_loyalty_transaction_all,customer.loyalty.transaction.all,model_customer_loyalty_transaction,base.group_user,1,0,0,0
 

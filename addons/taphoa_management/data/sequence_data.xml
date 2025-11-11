@@ -22,5 +22,25 @@
             <field name="number_increment">1</field>
         </record>
 
+        <!-- Sequence cho thẻ tích điểm -->
+        <record id="seq_loyalty_card" model="ir.sequence">
+            <field name="name">Thẻ tích điểm</field>
+            <field name="code">customer.loyalty.card</field>
+            <field name="prefix">LC</field>
+            <field name="padding">8</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
+        <!-- Sequence cho giao dịch tích điểm -->
+        <record id="seq_loyalty_transaction" model="ir.sequence">
+            <field name="name">Giao dịch tích điểm</field>
+            <field name="code">customer.loyalty.transaction</field>
+            <field name="prefix">LT</field>
+            <field name="padding">8</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
     </data>
 </odoo>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Chương trình tích điểm mặc định -->
+        <record id="loyalty_program_default" model="customer.loyalty.program">
+            <field name="name">Khách hàng thân thiết</field>
+            <field name="sequence">10</field>
+            <field name="active" eval="True"/>
+            
+            <!-- Quy tắc tích điểm: 1 điểm cho 10,000đ -->
+            <field name="points_per_amount">0.0001</field>
+            <field name="min_order_amount">50000</field>
+            
+            <!-- Quy tắc đổi điểm: 1 điểm = 1,000đ -->
+            <field name="points_to_discount_rate">1000</field>
+            <field name="min_points_to_redeem">10</field>
+            <field name="max_discount_percentage">50</field>
+            
+            <!-- Điểm hết hạn sau 1 năm -->
+            <field name="points_expiry_days">365</field>
+        </record>
+
+        <!-- Chương trình VIP -->
+        <record id="loyalty_program_vip" model="customer.loyalty.program">
+            <field name="name">Khách hàng VIP</field>
+            <field name="sequence">5</field>
+            <field name="active" eval="True"/>
+            
+            <!-- Quy tắc tích điểm: 1 điểm cho 5,000đ (tích điểm gấp đôi) -->
+            <field name="points_per_amount">0.0002</field>
+            <field name="min_order_amount">0</field>
+            
+            <!-- Quy tắc đổi điểm: 1 điểm = 1,500đ (giá trị cao hơn) -->
+            <field name="points_to_discount_rate">1500</field>
+            <field name="min_points_to_redeem">5</field>
+            <field name="max_discount_percentage">70</field>
+            
+            <!-- Điểm hết hạn sau 2 năm -->
+            <field name="points_expiry_days">730</field>
+        </record>
+
+        <!-- Cron job để hết hạn điểm tự động -->
+        <record id="ir_cron_expire_loyalty_points" model="ir.cron">
+            <field name="name">Hết hạn điểm tích lũy</field>
+            <field name="model_id" ref="model_customer_loyalty_transaction"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_expire_points()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="True"/>
+            <field name="doall" eval="False"/>
+        </record>
+    </data>
+</odoo>
