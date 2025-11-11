@@ -1,15 +1,25 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
+_logger = logging.getLogger(__name__)
+
 
 class WarehouseReceipt(models.Model):
-    """Phiếu nhập kho - Quản lý nhập hàng từ nhà cung cấp"""
+    """Model quản lý phiếu nhập kho"""
     _name = 'taphoa.warehouse.receipt'
     _description = 'Phiếu nhập kho'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'receipt_date desc, id desc'
+    
+    # % lợi nhuận mặc định (có thể thay đổi trên từng phiếu nhập)
+    profit_margin = fields.Float(
+        string='% Lợi nhuận',
+        default=20.0,
+        help='Phần trăm lợi nhuận cộng thêm vào giá vốn để tính giá bán'
+    )
 
     name = fields.Char(
         string='Số phiếu nhập',
@@ -140,11 +150,34 @@ class WarehouseReceipt(models.Model):
             if not picking_type:
                 raise UserError(_('Không tìm thấy loại phiếu nhập kho!'))
             
+            # Lấy location nguồn (từ nhà cung cấp)
+            location_src_id = picking_type.default_location_src_id.id if picking_type.default_location_src_id else False
+            if not location_src_id:
+                # Tìm supplier location
+                location_src = self.env['stock.location'].search([
+                    ('usage', '=', 'supplier')
+                ], limit=1)
+                if not location_src:
+                    raise UserError(_('Không tìm thấy địa điểm nguồn (Supplier Location)! Vui lòng cấu hình trong Kho > Cấu hình > Địa điểm'))
+                location_src_id = location_src.id
+            
+            # Lấy location đích (kho)
+            location_dest_id = picking_type.default_location_dest_id.id if picking_type.default_location_dest_id else False
+            if not location_dest_id:
+                # Tìm internal location của warehouse
+                location_dest = self.env['stock.location'].search([
+                    ('usage', '=', 'internal'),
+                    ('warehouse_id', '=', record.warehouse_id.id)
+                ], limit=1)
+                if not location_dest:
+                    raise UserError(_('Không tìm thấy địa điểm đích (kho)! Vui lòng cấu hình kho'))
+                location_dest_id = location_dest.id
+            
             picking_vals = {
                 'partner_id': record.partner_id.id,
                 'picking_type_id': picking_type.id,
-                'location_id': picking_type.default_location_src_id.id,
-                'location_dest_id': picking_type.default_location_dest_id.id,
+                'location_id': location_src_id,
+                'location_dest_id': location_dest_id,
                 'origin': record.name,
                 'move_ids_without_package': []
             }
@@ -155,8 +188,8 @@ class WarehouseReceipt(models.Model):
                     'product_id': line.product_id.id,
                     'product_uom_qty': line.quantity,
                     'product_uom': line.product_id.uom_id.id,
-                    'location_id': picking_type.default_location_src_id.id,
-                    'location_dest_id': picking_type.default_location_dest_id.id,
+                    'location_id': location_src_id,
+                    'location_dest_id': location_dest_id,
                 }
                 picking_vals['move_ids_without_package'].append((0, 0, move_vals))
             
@@ -169,6 +202,27 @@ class WarehouseReceipt(models.Model):
                 move.quantity = move.product_uom_qty
             
             picking.button_validate()
+            
+            # Lấy % lợi nhuận từ phiếu nhập (mặc định 20%)
+            profit_margin = record.profit_margin or 20.0
+            
+            # Cập nhật cost (standard_price) và sales price của sản phẩm
+            for line in record.line_ids:
+                if line.unit_price > 0:
+                    # Tính sales price = cost + % lợi nhuận
+                    sale_price = line.unit_price * (1 + profit_margin / 100.0)
+                    
+                    line.product_id.write({
+                        'standard_price': line.unit_price,  # Cost
+                        'list_price': sale_price  # Sales Price
+                    })
+                    
+                    _logger.info(
+                        f"Cập nhật giá {line.product_id.name}: "
+                        f"Cost=${line.unit_price:.2f}, "
+                        f"Sales Price=${sale_price:.2f} "
+                        f"(+{profit_margin}%)"
+                    )
             
             record.write({
                 'state': 'done',

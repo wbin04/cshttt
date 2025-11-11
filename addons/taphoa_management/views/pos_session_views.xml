@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherit POS Session Tree View -->
+    <record id="view_pos_session_tree_inherit" model="ir.ui.view">
+        <field name="name">pos.session.tree.inherit.taphoa</field>
+        <field name="model">pos.session</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_session_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="create">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit POS Session Form View -->
+    <record id="view_pos_session_form_inherit" model="ir.ui.view">
+        <field name="name">pos.session.form.inherit.taphoa</field>
+        <field name="model">pos.session</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+        <field name="arch" type="xml">
+            <!-- Make config_id field visible and editable in new mode -->
+            <xpath expr="//field[@name='config_id']" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="required">1</attribute>
+            </xpath>
+            
+            <!-- Add buttons in header -->
+            <xpath expr="//header/button[@name='action_pos_session_closing_control']" position="before">
+                <!-- Button to Open POS when session is opened -->
+                <button name="action_open_pos_ui" 
+                        string="Mở POS" 
+                        type="object" 
+                        class="oe_highlight"
+                        invisible="state not in ('opening_control', 'opened')"
+                        help="Mở giao diện Point of Sale"/>
+                
+                <!-- Button to Start session when in opening_control -->
+                <button name="action_pos_session_start" 
+                        string="Bắt đầu phiên" 
+                        type="object" 
+                        class="btn-secondary"
+                        invisible="state != 'opening_control'"
+                        help="Chuyển phiên sang trạng thái Opened (không mở POS)"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Custom Action for POS Session with New button -->
+    <record id="action_pos_session_taphoa" model="ir.actions.act_window">
+        <field name="name">Phiên bán hàng</field>
+        <field name="res_model">pos.session</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo phiên bán hàng mới
+            </p>
+            <p>
+                Phiên bán hàng được sử dụng để quản lý các giao dịch bán hàng trong một khoảng thời gian.<br/>
+                Nhấn <b>Tạo mới</b> để bắt đầu một phiên bán hàng mới.
+            </p>
+        </field>
+    </record>
+
+    <!-- Quick Create New Session Action -->
+    <record id="action_create_pos_session" model="ir.actions.server">
+        <field name="name">Tạo phiên mới</field>
+        <field name="model_id" ref="point_of_sale.model_pos_session"/>
+        <field name="state">code</field>
+        <field name="code">
+# Get the first available POS config
+config = env['pos.config'].search([], limit=1)
+if not config:
+    raise UserError('Không tìm thấy cấu hình POS nào. Vui lòng tạo cấu hình POS trước.')
+
+# Create new session
+new_session = env['pos.session'].create({
+    'config_id': config.id,
+    'user_id': env.uid,
+})
+
+# Return action to open the form view
+action = {
+    'name': 'Phiên bán hàng mới',
+    'type': 'ir.actions.act_window',
+    'res_model': 'pos.session',
+    'view_mode': 'form',
+    'res_id': new_session.id,
+    'target': 'current',
+}
+        </field>
+    </record>
+
+</odoo>

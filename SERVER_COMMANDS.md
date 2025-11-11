@@ -13,6 +13,7 @@ python3 odoo-bin -c odoo.conf
 ```bash
 cd /home/bin04/odoo
 source venv/bin/activate
+python3 ./odoo-bin -d erp_taphoa
 python3 odoo-bin -c odoo.conf -d odoo
 ```
 

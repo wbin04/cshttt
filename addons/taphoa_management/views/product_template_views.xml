@@ -7,6 +7,15 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_form_view"/>
         <field name="arch" type="xml">
+            <!-- Hiển thị các trường quan trọng ở General Information -->
+            <xpath expr="//page[@name='general_information']//group[@name='group_standard_price']" position="after">
+                <group string="Cấu hình Bán hàng &amp; POS">
+                    <field name="sale_ok" string="Có thể bán"/>
+                    <field name="available_in_pos" string="Hiển thị trong POS (Thu ngân)"/>
+                    <field name="type" string="Loại sản phẩm"/>
+                </group>
+            </xpath>
+            
             <xpath expr="//page[@name='general_information']" position="after">
                 <page string="Quản lý Tạp hóa" name="taphoa_info">
                     <group>

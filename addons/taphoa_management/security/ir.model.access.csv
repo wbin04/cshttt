@@ -9,3 +9,10 @@ access_taphoa_stock_check_line_user,taphoa.stock.check.line.user,model_taphoa_st
 access_taphoa_stock_check_line_manager,taphoa.stock.check.line.manager,model_taphoa_stock_check_line,group_taphoa_manager,1,1,1,1
 access_taphoa_accounting_report_accountant,taphoa.accounting.report.accountant,model_taphoa_accounting_report,group_taphoa_accountant,1,1,1,0
 access_taphoa_accounting_report_manager,taphoa.accounting.report.manager,model_taphoa_accounting_report,group_taphoa_manager,1,1,1,1
+access_taphoa_manager_dashboard_manager,taphoa.manager.dashboard.manager,model_taphoa_manager_dashboard,group_taphoa_manager,1,1,1,1
+access_taphoa_manager_dashboard_cashier,taphoa.manager.dashboard.cashier,model_taphoa_manager_dashboard,group_taphoa_cashier,1,0,0,0
+access_taphoa_manager_dashboard_warehouse,taphoa.manager.dashboard.warehouse,model_taphoa_manager_dashboard,group_taphoa_warehouse,1,0,0,0
+access_taphoa_manager_dashboard_accountant,taphoa.manager.dashboard.accountant,model_taphoa_manager_dashboard,group_taphoa_accountant,1,0,0,0
+access_wizard_stock_import_all,wizard.stock.import.all,model_wizard_stock_import,base.group_user,1,1,1,1
+access_wizard_fix_products_all,wizard.fix.products.all,model_wizard_fix_products,base.group_user,1,1,1,1
+

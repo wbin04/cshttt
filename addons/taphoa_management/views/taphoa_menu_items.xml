@@ -18,7 +18,7 @@
     <menuitem id="menu_pos_session"
               name="Phiên bán hàng"
               parent="menu_taphoa_cashier"
-              action="point_of_sale.action_pos_session"
+              action="action_pos_session_taphoa"
               sequence="10"/>
 
     <menuitem id="menu_pos_order"
@@ -58,6 +58,18 @@
               parent="menu_taphoa_manager"
               action="purchase.purchase_rfq"
               sequence="20"/>
+    
+    <menuitem id="menu_manager_warehouse_receipt"
+              name="Phiếu nhập kho"
+              parent="menu_taphoa_manager"
+              action="action_warehouse_receipt"
+              sequence="30"/>
+    
+    <menuitem id="menu_manager_pos_orders"
+              name="Đơn bán hàng"
+              parent="menu_taphoa_manager"
+              action="point_of_sale.action_pos_pos_form"
+              sequence="40"/>
 
     <!-- Configuration Menu Items -->
     <menuitem id="menu_product"

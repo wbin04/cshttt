@@ -19,6 +19,19 @@ class ProductTemplate(models.Model):
         help='Số lượng tồn kho tối đa'
     )
     
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Tự động bật sản phẩm cho POS và bán hàng khi tạo mới"""
+        for vals in vals_list:
+            # BẮT BUỘC bật các tùy chọn quan trọng (override nếu có)
+            vals['available_in_pos'] = True
+            vals['sale_ok'] = True
+            
+            # Chỉ set type nếu chưa có hoặc là 'consu'
+            if 'type' not in vals or vals.get('type') == 'consu':
+                vals['type'] = 'product'
+        return super(ProductTemplate, self).create(vals_list)
+    
     is_fast_moving = fields.Boolean(
         string='Hàng bán chạy',
         compute='_compute_is_fast_moving',

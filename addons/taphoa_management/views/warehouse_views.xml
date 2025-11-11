@@ -38,6 +38,7 @@
                             <field name="partner_id" options="{'no_create': True}"/>
                             <field name="warehouse_id" options="{'no_create': True}"/>
                             <field name="purchase_order_id" options="{'no_create': True}"/>
+                            <field name="profit_margin" widget="percentage"/>
                         </group>
                         <group>
                             <field name="receipt_date"/>
