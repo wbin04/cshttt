@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dashboard Kanban View for Manager -->
+    <record id="view_manager_dashboard_kanban" model="ir.ui.view">
+        <field name="name">taphoa.manager.dashboard.kanban</field>
+        <field name="model">taphoa.manager.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard o_taphoa_dashboard o_kanban_mobile" create="false" edit="false" delete="false" default_group_by="">
+                <field name="total_pos_orders_today"/>
+                <field name="total_revenue_today"/>
+                <field name="total_pos_orders_month"/>
+                <field name="total_revenue_month"/>
+                <field name="total_purchase_orders"/>
+                <field name="total_purchase_amount"/>
+                <field name="total_warehouse_receipts"/>
+                <field name="total_warehouse_amount"/>
+                <field name="low_stock_products"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="o_kanban_record_top o_kanban_record_has_image_fill o_kanban_global_click_edit d-flex flex-column" style="width: 100vw; max-width: 100%; margin-left: calc(-50vw + 50%);">
+                            <!-- Header -->
+                            <div class="container-fluid px-5 py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="mb-0 text-white">
+                                                <i class="fa fa-tachometer"/> Dashboard Quản lý Tạp hóa
+                                            </h2>
+                                            <button class="btn btn-light" name="action_refresh_dashboard" type="object" title="Làm mới">
+                                                <i class="fa fa-refresh"/> Làm mới
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 3 Columns Layout -->
+                            <div class="container-fluid px-5 py-4" style="background-color: #f8f9fa;">
+                                <div class="row g-4">
+                                    <!-- Column 1: Doanh thu -->
+                                    <div class="col-md-4 mb-3">
+                                    <h4 class="text-uppercase mb-3">
+                                        <i class="fa fa-line-chart text-success"/> Doanh thu
+                                    </h4>
+                                    
+                                    <!-- Hôm nay -->
+                                    <a name="action_view_pos_orders_today" type="object" class="text-decoration-none d-block mb-3">
+                                        <div class="card border-0 shadow-sm dashboard-card dashboard-card-primary">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h5 class="card-title mb-0">Hôm nay</h5>
+                                                        <p class="text-muted small mb-0"><i class="fa fa-calendar"/> <t t-esc="new Date().toLocaleDateString('vi-VN')"/></p>
+                                                    </div>
+                                                    <div class="icon-box bg-primary">
+                                                        <i class="fa fa-shopping-cart fa-2x text-white"/>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <h3 class="mb-0 text-primary"><field name="total_pos_orders_today"/></h3>
+                                                    <p class="text-muted small mb-0">Đơn hàng</p>
+                                                </div>
+                                                <div>
+                                                    <h3 class="mb-0 text-success"><field name="total_revenue_today" widget="monetary"/></h3>
+                                                    <p class="text-muted small mb-0">Doanh thu</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    
+                                    <!-- Tháng này -->
+                                    <a name="action_view_pos_orders_month" type="object" class="text-decoration-none d-block">
+                                        <div class="card border-0 shadow-sm dashboard-card dashboard-card-success">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h5 class="card-title mb-0">Tháng này</h5>
+                                                        <p class="text-muted small mb-0"><i class="fa fa-calendar-check-o"/> Tháng <t t-esc="new Date().getMonth() + 1"/></p>
+                                                    </div>
+                                                    <div class="icon-box bg-success">
+                                                        <i class="fa fa-bar-chart fa-2x text-white"/>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <h3 class="mb-0 text-primary"><field name="total_pos_orders_month"/></h3>
+                                                    <p class="text-muted small mb-0">Đơn hàng</p>
+                                                </div>
+                                                <div>
+                                                    <h3 class="mb-0 text-success"><field name="total_revenue_month" widget="monetary"/></h3>
+                                                    <p class="text-muted small mb-0">Doanh thu</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                
+                                <!-- Column 2: Mua hàng & Nhập kho -->
+                                <div class="col-md-4 mb-3">
+                                    <h4 class="text-uppercase mb-3">
+                                        <i class="fa fa-truck text-warning"/> Mua hàng &amp; Nhập kho
+                                    </h4>
+                                    
+                                    <!-- Đơn mua hàng -->
+                                    <a name="action_view_purchase_orders" type="object" class="text-decoration-none d-block mb-3">
+                                        <div class="card border-0 shadow-sm dashboard-card dashboard-card-warning">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h5 class="card-title mb-0">Đơn mua hàng</h5>
+                                                        <p class="text-muted small mb-0"><i class="fa fa-clock-o"/> Chờ xử lý</p>
+                                                    </div>
+                                                    <div class="icon-box bg-warning">
+                                                        <i class="fa fa-file-text-o fa-2x text-white"/>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <h3 class="mb-0 text-warning"><field name="total_purchase_orders"/></h3>
+                                                    <p class="text-muted small mb-0">Đơn hàng chờ</p>
+                                                </div>
+                                                <div>
+                                                    <h3 class="mb-0 text-info"><field name="total_purchase_amount" widget="monetary"/></h3>
+                                                    <p class="text-muted small mb-0">Tổng giá trị</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    
+                                    <!-- Phiếu nhập kho -->
+                                    <a name="action_view_warehouse_receipts" type="object" class="text-decoration-none d-block">
+                                        <div class="card border-0 shadow-sm dashboard-card dashboard-card-info">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h5 class="card-title mb-0">Phiếu nhập kho</h5>
+                                                        <p class="text-muted small mb-0"><i class="fa fa-inbox"/> Chờ xác nhận</p>
+                                                    </div>
+                                                    <div class="icon-box bg-info">
+                                                        <i class="fa fa-cubes fa-2x text-white"/>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <h3 class="mb-0 text-warning"><field name="total_warehouse_receipts"/></h3>
+                                                    <p class="text-muted small mb-0">Phiếu nhập chờ</p>
+                                                </div>
+                                                <div>
+                                                    <h3 class="mb-0 text-info"><field name="total_warehouse_amount" widget="monetary"/></h3>
+                                                    <p class="text-muted small mb-0">Tổng giá trị</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                
+                                <!-- Column 3: Tồn kho -->
+                                <div class="col-md-4 mb-3">
+                                    <h4 class="text-uppercase mb-3">
+                                        <i class="fa fa-database text-danger"/> Cảnh báo
+                                    </h4>
+                                    
+                                    <!-- Sản phẩm sắp hết -->
+                                    <a name="action_view_low_stock" type="object" class="text-decoration-none d-block">
+                                        <div class="card border-0 shadow-sm dashboard-card dashboard-card-danger">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h5 class="card-title mb-0">Sản phẩm sắp hết</h5>
+                                                        <p class="text-muted small mb-0"><i class="fa fa-exclamation-triangle"/> Cần đặt hàng</p>
+                                                    </div>
+                                                    <div class="icon-box bg-danger">
+                                                        <i class="fa fa-warning fa-2x text-white"/>
+                                                    </div>
+                                                </div>
+                                                <div class="text-center py-3">
+                                                    <h1 class="mb-0 text-danger display-3"><field name="low_stock_products"/></h1>
+                                                    <p class="text-muted mb-0">Sản phẩm</p>
+                                                    <p class="text-muted small mb-0">(Tồn kho &lt; 10)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Form View (Simple) -->
+    <record id="view_manager_dashboard_form" model="ir.ui.view">
+        <field name="name">taphoa.manager.dashboard.form</field>
+        <field name="model">taphoa.manager.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action - Dashboard -->
+    <record id="action_manager_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">taphoa.manager.dashboard</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chào mừng đến Dashboard Quản lý
+            </p>
+            <p>
+                Xem tổng quan doanh thu, đơn hàng, nhập kho và tồn kho của cửa hàng.
+            </p>
+        </field>
+    </record>
+
+</odoo>

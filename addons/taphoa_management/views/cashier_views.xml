@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extend POS Order Form View -->
+    <record id="view_pos_order_form_inherit" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="customer_phone"/>
+                <field name="customer_address"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Thông tin bổ sung">
+                    <group>
+                        <group>
+                            <field name="is_debt"/>
+                            <field name="debt_amount" invisible="not is_debt"/>
+                            <field name="debt_due_date" invisible="not is_debt"/>
+                        </group>
+                        <group>
+                            <field name="payment_qr_code"/>
+                            <field name="cashier_note"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend POS Config Form View -->
+    <record id="view_pos_config_form_inherit" model="ir.ui.view">
+        <field name="name">pos.config.form.inherit</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Cấu hình Tạp hóa" name="taphoa_config">
+                    <group string="Thanh toán">
+                        <field name="enable_debt_sale"/>
+                        <field name="enable_qr_payment"/>
+                    </group>
+                    <group string="Cảnh báo tồn kho">
+                        <field name="low_stock_warning"/>
+                        <field name="low_stock_threshold" invisible="not low_stock_warning"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

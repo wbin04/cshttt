@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="view_wizard_fix_products_form" model="ir.ui.view">
+        <field name="name">wizard.fix.products.form</field>
+        <field name="model">wizard.fix.products</field>
+        <field name="arch" type="xml">
+            <form string="Sửa cấu hình sản phẩm cho POS">
+                <group>
+                    <field name="product_ids" widget="many2many_tags" 
+                           options="{'no_create': True}"
+                           domain="[('type', 'in', ['product', 'consu'])]"/>
+                </group>
+                <group>
+                    <group>
+                        <field name="enable_pos"/>
+                        <field name="enable_sale"/>
+                    </group>
+                    <group>
+                        <field name="set_storable"/>
+                    </group>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    <strong>Hướng dẫn:</strong>
+                    <ul>
+                        <li>Chọn sản phẩm cần sửa (hoặc để mặc định để sửa tất cả)</li>
+                        <li>Tick vào các tùy chọn cần áp dụng</li>
+                        <li>Nhấn "Sửa sản phẩm" để áp dụng</li>
+                    </ul>
+                    <strong>Sau khi sửa:</strong> Vào POS, đóng phiên hiện tại và mở phiên mới để tải lại sản phẩm.
+                </div>
+                <footer>
+                    <button string="Sửa sản phẩm" type="object" name="action_fix_products" class="btn-primary"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action để mở wizard -->
+    <record id="action_wizard_fix_products" model="ir.actions.act_window">
+        <field name="name">Sửa sản phẩm cho POS</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">wizard.fix.products</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu item -->
+    <menuitem id="menu_wizard_fix_products"
+              name="Sửa sản phẩm cho POS"
+              parent="taphoa_management.menu_taphoa_config"
+              action="action_wizard_fix_products"
+              sequence="100"/>
+
+</odoo>

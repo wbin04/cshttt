@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Menu chính -->
+    <menuitem id="menu_taphoa_root"
+              name="Quản lý Tạp hóa"
+              sequence="5"
+              web_icon="taphoa_management,static/description/icon.png"/>
+
+    <!-- Menu Thủ kho -->
+    <menuitem id="menu_taphoa_warehouse"
+              name="Thủ kho"
+              parent="menu_taphoa_root"
+              sequence="10"/>
+
+    <!-- Menu Thu ngân -->
+    <menuitem id="menu_taphoa_cashier"
+              name="Thu ngân"
+              parent="menu_taphoa_root"
+              sequence="20"/>
+
+    <!-- Menu Kế toán -->
+    <menuitem id="menu_taphoa_accounting"
+              name="Kế toán"
+              parent="menu_taphoa_root"
+              sequence="30"/>
+
+    <!-- Menu Chủ cửa hàng -->
+    <menuitem id="menu_taphoa_manager"
+              name="Chủ cửa hàng"
+              parent="menu_taphoa_root"
+              sequence="40"
+              groups="group_taphoa_manager"/>
+
+    <!-- Menu Cấu hình -->
+    <menuitem id="menu_taphoa_config"
+              name="Cấu hình"
+              parent="menu_taphoa_root"
+              sequence="50"
+              groups="group_taphoa_manager"/>
+
+</odoo>

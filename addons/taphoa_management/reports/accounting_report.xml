@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report - Accounting Report -->
+    <record id="action_report_accounting" model="ir.actions.report">
+        <field name="name">Báo cáo kế toán</field>
+        <field name="model">taphoa.accounting.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">taphoa_management.report_accounting_summary</field>
+        <field name="report_file">taphoa_management.report_accounting_summary</field>
+        <field name="binding_model_id" ref="model_taphoa_accounting_report"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_accounting_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">BÁO CÁO KẾ TOÁN</h2>
+                        <h4 class="text-center"><span t-field="o.name"/></h4>
+
+                        <div class="row mt32 mb32">
+                            <div class="col-12 text-center">
+                                <strong>Từ ngày:</strong> <span t-field="o.date_from"/> 
+                                <strong>đến ngày:</strong> <span t-field="o.date_to"/><br/>
+                                <strong>Loại báo cáo:</strong> <span t-field="o.report_type"/>
+                            </div>
+                        </div>
+
+                        <div class="row mt32">
+                            <div class="col-6">
+                                <div class="card bg-success text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">DOANH THU</h5>
+                                        <h3><span t-field="o.total_revenue"/></h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-danger text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">CHI PHÍ</h5>
+                                        <h3><span t-field="o.total_expense"/></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="card bg-primary text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">LỢI NHUẬN</h5>
+                                        <h3><span t-field="o.total_profit"/></h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-warning text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">CÔNG NỢ</h5>
+                                        <h3><span t-field="o.total_debt"/></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt32">
+                            <div class="col-12">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr class="table-active">
+                                            <th>Chỉ tiêu</th>
+                                            <th class="text-right">Số tiền</th>
+                                            <th class="text-right">Tỷ lệ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Tổng doanh thu</strong></td>
+                                            <td class="text-right"><span t-field="o.total_revenue"/></td>
+                                            <td class="text-right">100%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tổng chi phí</strong></td>
+                                            <td class="text-right"><span t-field="o.total_expense"/></td>
+                                            <td class="text-right">
+                                                <t t-if="o.total_revenue > 0">
+                                                    <span t-esc="'%.2f%%' % ((o.total_expense / o.total_revenue) * 100)"/>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-success">
+                                            <td><strong>Lợi nhuận ròng</strong></td>
+                                            <td class="text-right"><strong><span t-field="o.total_profit"/></strong></td>
+                                            <td class="text-right">
+                                                <t t-if="o.total_revenue > 0">
+                                                    <strong><span t-esc="'%.2f%%' % ((o.total_profit / o.total_revenue) * 100)"/></strong>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-warning">
+                                            <td><strong>Tổng công nợ</strong></td>
+                                            <td class="text-right"><span t-field="o.total_debt"/></td>
+                                            <td class="text-right">-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

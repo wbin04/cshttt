@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Demo Products -->
+        <record id="product_rice_5kg" model="product.product">
+            <field name="name">Gạo ST25 5kg</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="list_price">85000</field>
+            <field name="standard_price">75000</field>
+            <field name="barcode">8934567890123</field>
+            <field name="default_code">RICE-ST25-5KG</field>
+        </record>
+
+        <record id="product_oil_1l" model="product.product">
+            <field name="name">Dầu ăn Simply 1L</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="list_price">45000</field>
+            <field name="standard_price">38000</field>
+            <field name="barcode">8934567890234</field>
+            <field name="default_code">OIL-SIMPLY-1L</field>
+        </record>
+
+        <record id="product_sugar_1kg" model="product.product">
+            <field name="name">Đường trắng 1kg</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="list_price">22000</field>
+            <field name="standard_price">18000</field>
+            <field name="barcode">8934567890345</field>
+            <field name="default_code">SUGAR-WHITE-1KG</field>
+        </record>
+
+        <record id="product_instant_noodles" model="product.product">
+            <field name="name">Mì ăn liền Hảo Hảo (thùng 30 gói)</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="list_price">115000</field>
+            <field name="standard_price">98000</field>
+            <field name="barcode">8934567890456</field>
+            <field name="default_code">NOODLE-HH-BOX30</field>
+        </record>
+
+        <record id="product_milk_vinamilk" model="product.product">
+            <field name="name">Sữa tươi Vinamilk 1L</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="list_price">38000</field>
+            <field name="standard_price">32000</field>
+            <field name="barcode">8934567890567</field>
+            <field name="default_code">MILK-VNM-1L</field>
+        </record>
+
+        <!-- Demo Suppliers -->
+        <record id="supplier_taphoa_1" model="res.partner">
+            <field name="name">Công ty TNHH Thực phẩm Miền Nam</field>
+            <field name="supplier_rank">1</field>
+            <field name="phone">0901234567</field>
+            <field name="email">miennam@example.com</field>
+            <field name="street">123 Đường Nguyễn Văn Linh</field>
+            <field name="city">TP. Hồ Chí Minh</field>
+        </record>
+
+        <record id="supplier_taphoa_2" model="res.partner">
+            <field name="name">Công ty CP Lương thực Miền Bắc</field>
+            <field name="supplier_rank">1</field>
+            <field name="phone">0907654321</field>
+            <field name="email">mienbac@example.com</field>
+            <field name="street">456 Phố Huế</field>
+            <field name="city">Hà Nội</field>
+        </record>
+
+        <!-- Demo Customers -->
+        <record id="customer_taphoa_1" model="res.partner">
+            <field name="name">Nguyễn Văn A</field>
+            <field name="customer_rank">1</field>
+            <field name="phone">0912345678</field>
+            <field name="street">789 Đường Lê Lợi</field>
+        </record>
+
+        <record id="customer_taphoa_2" model="res.partner">
+            <field name="name">Trần Thị B</field>
+            <field name="customer_rank">1</field>
+            <field name="phone">0923456789</field>
+            <field name="street">321 Đường Trần Hưng Đạo</field>
+        </record>
+
+        <!-- Demo Users -->
+        <!-- Thu ngân -->
+        <record id="user_cashier_demo" model="res.users">
+            <field name="name">Thu Ngân Demo</field>
+            <field name="login">thungan</field>
+            <field name="password">thungan123</field>
+            <field name="email">thungan@taphoa.com</field>
+            <field name="groups_id" eval="[(4, ref('group_taphoa_cashier'))]"/>
+        </record>
+
+        <record id="partner_cashier_demo" model="res.partner">
+            <field name="name">Thu Ngân Demo</field>
+            <field name="email">thungan@taphoa.com</field>
+            <field name="phone">0911111111</field>
+            <field name="user_ids" eval="[(4, ref('user_cashier_demo'))]"/>
+        </record>
+
+        <!-- Thủ kho -->
+        <record id="user_warehouse_demo" model="res.users">
+            <field name="name">Thủ Kho Demo</field>
+            <field name="login">thukho</field>
+            <field name="password">thukho123</field>
+            <field name="email">thukho@taphoa.com</field>
+            <field name="groups_id" eval="[(4, ref('group_taphoa_warehouse'))]"/>
+        </record>
+
+        <record id="partner_warehouse_demo" model="res.partner">
+            <field name="name">Thủ Kho Demo</field>
+            <field name="email">thukho@taphoa.com</field>
+            <field name="phone">0922222222</field>
+            <field name="user_ids" eval="[(4, ref('user_warehouse_demo'))]"/>
+        </record>
+
+        <!-- Kế toán -->
+        <record id="user_accountant_demo" model="res.users">
+            <field name="name">Kế Toán Demo</field>
+            <field name="login">ketoan</field>
+            <field name="password">ketoan123</field>
+            <field name="email">ketoan@taphoa.com</field>
+            <field name="groups_id" eval="[(4, ref('group_taphoa_accountant'))]"/>
+        </record>
+
+        <record id="partner_accountant_demo" model="res.partner">
+            <field name="name">Kế Toán Demo</field>
+            <field name="email">ketoan@taphoa.com</field>
+            <field name="phone">0933333333</field>
+            <field name="user_ids" eval="[(4, ref('user_accountant_demo'))]"/>
+        </record>
+
+        <!-- Chủ cửa hàng -->
+        <record id="user_manager_demo" model="res.users">
+            <field name="name">Chủ Cửa Hàng Demo</field>
+            <field name="login">quanly</field>
+            <field name="password">quanly123</field>
+            <field name="email">quanly@taphoa.com</field>
+            <field name="groups_id" eval="[(4, ref('group_taphoa_manager'))]"/>
+        </record>
+
+        <record id="partner_manager_demo" model="res.partner">
+            <field name="name">Chủ Cửa Hàng Demo</field>
+            <field name="email">quanly@taphoa.com</field>
+            <field name="phone">0944444444</field>
+            <field name="user_ids" eval="[(4, ref('user_manager_demo'))]"/>
+        </record>
+
+    </data>
+</odoo>

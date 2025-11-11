@@ -1,0 +1,113 @@
+/* Dashboard Full Width */
+.o_taphoa_dashboard .o_kanban_view {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.o_taphoa_dashboard .o_kanban_renderer {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+}
+
+.o_taphoa_dashboard .o_kanban_record {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+
+.o_taphoa_dashboard {
+    background-color: #f8f9fa !important;
+}
+
+/* Dashboard Cards */
+.o_taphoa_dashboard .dashboard-card {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.o_taphoa_dashboard .dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.o_taphoa_dashboard .dashboard-card .card-body {
+    padding: 1.5rem;
+}
+
+.o_taphoa_dashboard .dashboard-card h3 {
+    font-weight: 700;
+}
+
+.o_taphoa_dashboard .dashboard-card .icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Card Colors */
+.dashboard-card-primary {
+    border-left: 4px solid #007bff !important;
+}
+
+.dashboard-card-success {
+    border-left: 4px solid #28a745 !important;
+}
+
+.dashboard-card-warning {
+    border-left: 4px solid #ffc107 !important;
+}
+
+.dashboard-card-info {
+    border-left: 4px solid #17a2b8 !important;
+}
+
+.dashboard-card-danger {
+    border-left: 4px solid #dc3545 !important;
+}
+
+/* Text Colors */
+.text-primary {
+    color: #007bff !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Background Colors */
+.bg-primary {
+    background-color: #007bff !important;
+}
+
+.bg-success {
+    background-color: #28a745 !important;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.bg-danger {
+    background-color: #dc3545 !important;
+}
