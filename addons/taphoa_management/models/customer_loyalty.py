@@ -100,11 +100,27 @@ class CustomerLoyaltyProgram(models.Model):
                 raise ValidationError(_('Phần trăm giảm giá tối đa phải từ 0 đến 100'))
     
     def calculate_points_from_amount(self, amount):
-        """Tính điểm từ số tiền"""
+        """
+        Tính điểm từ số tiền theo bậc:
+        - < 50,000: 0 điểm
+        - 50,000 - < 100,000: 50 điểm
+        - 100,000 - < 150,000: 100 điểm
+        - Cứ thêm mỗi 50,000 thì thêm 50 điểm
+        """
         self.ensure_one()
-        if amount < self.min_order_amount:
+        
+        # Dưới 50,000 không tích điểm
+        if amount < 50000:
             return 0
-        return int(amount * self.points_per_amount)
+        
+        # Tính số bậc 50,000
+        # VD: 75,000 -> 1 bậc = 50 điểm
+        #     125,000 -> 2 bậc = 100 điểm
+        #     200,000 -> 4 bậc = 200 điểm
+        steps = int(amount // 50000)
+        points = steps * 50
+        
+        return points
     
     def calculate_discount_from_points(self, points, order_amount):
         """Tính số tiền giảm giá từ điểm"""
@@ -231,6 +247,65 @@ class CustomerLoyaltyCard(models.Model):
                 'default_partner_id': self.partner_id.id,
                 'default_program_id': self.program_id.id,
             }
+        }
+    
+    @api.model
+    def add_transaction(self, partner_id, points, amount, transaction_type='earn', description=''):
+        """
+        Thêm giao dịch tích điểm từ POS
+        @param partner_id: ID khách hàng
+        @param points: Số điểm (dương: tích, âm: đổi)
+        @param amount: Số tiền giao dịch
+        @param transaction_type: 'earn' hoặc 'redeem'
+        @param description: Mô tả giao dịch
+        @return: Transaction record
+        """
+        import logging
+        _logger = logging.getLogger(__name__)
+        
+        _logger.info(f"💎 add_transaction called: partner_id={partner_id}, points={points}, amount={amount}")
+        
+        # Tìm thẻ loyalty của khách hàng
+        card = self.search([
+            ('partner_id', '=', partner_id),
+            ('state', '=', 'active')
+        ], limit=1)
+        
+        if not card:
+            _logger.warning(f"⚠️ No active loyalty card for partner {partner_id}")
+            # Tạo thẻ mới nếu chưa có
+            program = self.env['customer.loyalty.program'].search([('active', '=', True)], limit=1)
+            if not program:
+                raise UserError(_('Không tìm thấy chương trình tích điểm nào đang hoạt động!'))
+            
+            card = self.create({
+                'partner_id': partner_id,
+                'program_id': program.id,
+            })
+            _logger.info(f"✅ Created new loyalty card: {card.card_number}")
+        
+        # Tạo transaction
+        transaction = self.env['customer.loyalty.transaction'].create({
+            'card_id': card.id,
+            'partner_id': partner_id,
+            'program_id': card.program_id.id,
+            'transaction_type': transaction_type,
+            'points': points if transaction_type == 'earn' else -abs(points),
+            'amount': amount,
+            'description': description or f'Tích điểm từ POS: {amount}đ',
+            'state': 'confirmed',
+        })
+        
+        _logger.info(f"✅ Transaction created: {transaction.id}, points={transaction.points}")
+        
+        # Cập nhật loyalty_points trên partner
+        partner = self.env['res.partner'].browse(partner_id)
+        partner.write({'loyalty_points': card.total_points})
+        
+        return {
+            'success': True,
+            'transaction_id': transaction.id,
+            'new_total_points': card.total_points,
         }
     
     def can_redeem_points(self, points):
@@ -412,7 +487,16 @@ class ResPartner(models.Model):
     total_loyalty_points = fields.Integer(
         string='Tổng điểm tích lũy',
         compute='_compute_total_loyalty_points',
+        store=False,  # Computed field
         help='Tổng điểm từ tất cả các thẻ'
+    )
+    
+    # Add this field for POS
+    loyalty_points = fields.Integer(
+        string='Điểm tích lũy (POS)',
+        compute='_compute_total_loyalty_points',
+        store=False,
+        help='Alias for total_loyalty_points for POS compatibility'
     )
     
     @api.depends('loyalty_card_ids')

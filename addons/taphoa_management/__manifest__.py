@@ -62,6 +62,7 @@
         'views/warehouse_views.xml',
         'views/cashier_views.xml',
         'views/pos_session_views.xml',
+        'views/pos_config_views.xml',
         'views/accounting_views.xml',
         'views/manager_dashboard_views.xml',
         'views/product_template_views.xml',
@@ -74,8 +75,12 @@
         'reports/accounting_report.xml',
     ],
     'assets': {
-        'web.assets_backend': [
-            'taphoa_management/static/src/css/dashboard.css',
+        'point_of_sale._assets_pos': [
+            'taphoa_management/static/src/app/loyalty_button.js',
+            'taphoa_management/static/src/app/loyalty_button.xml',
+            'taphoa_management/static/src/app/loyalty_popup.js',
+            'taphoa_management/static/src/app/loyalty_popup.xml',
+            'taphoa_management/static/src/app/loyalty.css',
         ],
     },
     'demo': [

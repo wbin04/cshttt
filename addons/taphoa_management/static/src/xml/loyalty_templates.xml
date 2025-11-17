@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- Control Button Tích điểm -->
+    <t t-name="taphoa_management.LoyaltyButton">
+        <button class="control-button btn btn-light" t-on-click="onClick">
+            <i class="fa fa-gift" style="font-size: 20px; color: #9C27B0;"/>
+            <br/>
+            <span style="font-size: 11px;">Tích điểm</span>
+        </button>
+    </t>
+
+    <!-- Extend ActionpadWidget với Loyalty button -->
+    <t t-inherit="point_of_sale.ActionpadWidget" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('set-partner')]" position="after">
+            <button class="button btn btn-light rounded-0 py-2 flex-shrink-1 fw-bolder"
+                    style="background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%) !important; color: white !important; border-bottom: 1px solid #999;"
+                    t-on-click="async () => {
+                        const order = this.pos.get_order();
+                        const partner = order.get_partner();
+                        if (!partner) {
+                            await this.env.services.popup.add('ErrorPopup', {
+                                title: 'Chưa chọn khách hàng',
+                                body: 'Vui lòng chọn khách hàng trước.'
+                            });
+                        } else {
+                            await this.env.services.popup.add('ConfirmPopup', {
+                                title: '🎁 Tích điểm - ' + partner.name,
+                                body: 'Chức năng tích điểm hoạt động!'
+                            });
+                        }
+                    }">
+                <div class="d-flex justify-content-center align-items-center">
+                    <span class="d-flex justify-content-center align-items-center rounded-circle me-2" style="background: rgba(255,255,255,0.3); width: 30px; height: 30px;">
+                        <i class="fa fa-gift" style="color: white; font-size: 16px;"/>
+                    </span>
+                    <div class="fw-bolder" style="font-size: 14px;">Tích điểm</div>
+                </div>
+            </button>
+        </xpath>
+    </t>
+
+    <!-- Popup đổi điểm -->
+    <t t-name="taphoa_management.LoyaltyPopup">
+        <div class="popup loyalty-popup">
+            <header class="title">
+                <t t-esc="props.title"/>
+            </header>
+            <main class="body">
+                <div class="loyalty-info">
+                    <div class="info-row">
+                        <span class="label">Khách hàng:</span>
+                        <span class="value"><t t-esc="props.card.partner_id[1]"/></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Số thẻ:</span>
+                        <span class="value"><t t-esc="props.card.card_number"/></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Điểm hiện có:</span>
+                        <span class="value points"><t t-esc="state.maxPoints"/></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Chương trình:</span>
+                        <span class="value"><t t-esc="props.program.name"/></span>
+                    </div>
+                    <div class="info-row text-muted">
+                        <small>1 điểm = <t t-esc="props.program.points_to_discount_rate.toLocaleString()"/>đ</small>
+                    </div>
+                    <div class="info-row text-muted">
+                        <small>Tối thiểu: <t t-esc="props.program.min_points_to_redeem"/> điểm</small>
+                    </div>
+                    <div class="info-row text-muted">
+                        <small>Giảm tối đa: <t t-esc="props.program.max_discount_percentage"/>%</small>
+                    </div>
+                </div>
+
+                <div class="loyalty-input">
+                    <div class="form-group">
+                        <label for="points-input">Số điểm muốn sử dụng:</label>
+                        <div class="input-group">
+                            <input 
+                                type="number" 
+                                name="points"
+                                id="points-input"
+                                class="form-control" 
+                                t-att-value="state.pointsToUse"
+                                t-att-max="state.maxPoints"
+                                min="0"
+                                t-on-input="onPointsChange"
+                            />
+                            <button class="btn btn-primary" t-on-click="useMaxPoints">
+                                Dùng tối đa
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="discount-preview" t-if="state.discount > 0">
+                        <div class="preview-row">
+                            <span class="label">Giảm giá:</span>
+                            <span class="value discount-amount">
+                                <t t-esc="state.discount.toLocaleString()"/>đ
+                            </span>
+                        </div>
+                        <div class="preview-row">
+                            <span class="label">Điểm còn lại:</span>
+                            <span class="value">
+                                <t t-esc="state.maxPoints - state.pointsToUse"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <footer class="footer">
+                <button class="button btn-secondary" t-on-click="cancel">
+                    <t t-esc="props.cancelText"/>
+                </button>
+                <button class="button btn-primary" t-on-click="confirm">
+                    <t t-esc="props.confirmText"/>
+                </button>
+            </footer>
+        </div>
+    </t>
+
+    <!-- Hiển thị thông tin loyalty trên màn hình POS -->
+    <t t-name="taphoa_management.LoyaltyDisplay">
+        <div class="loyalty-display" t-if="partner and loyaltyCard">
+            <div class="loyalty-header">
+                <i class="fa fa-star"/> Tích điểm
+            </div>
+            <div class="loyalty-content">
+                <div class="loyalty-row">
+                    <span class="label">KH:</span>
+                    <span class="value"><t t-esc="partner.name"/></span>
+                </div>
+                <div class="loyalty-row">
+                    <span class="label">Thẻ:</span>
+                    <span class="value"><t t-esc="loyaltyCard.card_number"/></span>
+                </div>
+                <div class="loyalty-row">
+                    <span class="label">Điểm:</span>
+                    <span class="value points-current"><t t-esc="currentPoints"/></span>
+                </div>
+                <div class="loyalty-row" t-if="pointsUsed > 0">
+                    <span class="label">Sử dụng:</span>
+                    <span class="value points-used">-<t t-esc="pointsUsed"/></span>
+                </div>
+                <div class="loyalty-row" t-if="discountAmount > 0">
+                    <span class="label">Giảm:</span>
+                    <span class="value discount">-<t t-esc="discountAmount.toLocaleString()"/>đ</span>
+                </div>
+                <div class="loyalty-row" t-if="pointsToEarn > 0">
+                    <span class="label">Tích:</span>
+                    <span class="value points-earned">+<t t-esc="pointsToEarn"/></span>
+                </div>
+                <div class="loyalty-row total">
+                    <span class="label">Sau GD:</span>
+                    <span class="value points-after"><t t-esc="pointsAfterTransaction"/></span>
+                </div>
+                <button class="btn btn-primary btn-loyalty" t-on-click="useLoyaltyPoints">
+                    <i class="fa fa-gift"/> Đổi điểm
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

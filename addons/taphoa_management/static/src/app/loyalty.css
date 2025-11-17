@@ -1,0 +1,102 @@
+/* Loyalty Popup Styles */
+.loyalty-popup {
+    min-width: 500px;
+    max-width: 600px;
+}
+
+.loyalty-popup .body {
+    padding: 20px;
+}
+
+.loyalty-info {
+    margin: 15px 0;
+}
+
+.loyalty-card-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.loyalty-card-info .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.loyalty-card-info .info-row:last-child {
+    border-bottom: none;
+}
+
+.loyalty-card-info .info-row.highlight {
+    background: #fff3cd;
+    margin: 10px -10px -10px;
+    padding: 15px 10px;
+    border-radius: 0 0 8px 8px;
+    border-bottom: none;
+}
+
+.loyalty-card-info label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.loyalty-card-info .points {
+    font-size: 24px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.loyalty-actions {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
+.loyalty-actions .button {
+    padding: 15px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.loyalty-actions .earn-points {
+    background: #28a745;
+    color: white;
+}
+
+.loyalty-actions .earn-points:hover {
+    background: #218838;
+}
+
+.loyalty-actions .redeem-points {
+    background: #ff6b6b;
+    color: white;
+}
+
+.loyalty-actions .redeem-points:hover {
+    background: #ee5a52;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.alert strong {
+    display: block;
+    margin-bottom: 5px;
+}

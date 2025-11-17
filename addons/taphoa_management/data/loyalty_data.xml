@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Sản phẩm giảm giá từ điểm tích lũy -->
+        <record id="product_loyalty_discount" model="product.product">
+            <field name="name">Giảm giá từ điểm tích lũy</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="available_in_pos" eval="True"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="taxes_id" eval="[(5,)]"/>
+            <field name="default_code">LOYALTY_DISCOUNT</field>
+        </record>
+
         <!-- Chương trình tích điểm mặc định -->
         <record id="loyalty_program_default" model="customer.loyalty.program">
             <field name="name">Khách hàng thân thiết</field>

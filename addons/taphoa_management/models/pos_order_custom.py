@@ -102,9 +102,15 @@ class PosOrderCustom(models.Model):
     
     def _process_loyalty_points(self):
         """Xử lý tích điểm và đổi điểm sau khi thanh toán"""
+        import logging
+        _logger = logging.getLogger(__name__)
+        
         self.ensure_one()
         
+        _logger.info(f"🎁 _process_loyalty_points called for {self.name}: state={self.state}, card={self.loyalty_card_id.card_number if self.loyalty_card_id else None}, points_earned={self.loyalty_points_earned}")
+        
         if not self.loyalty_card_id or self.state != 'paid':
+            _logger.warning(f"❌ Skip loyalty: card={bool(self.loyalty_card_id)}, state={self.state}")
             return
         
         Transaction = self.env['customer.loyalty.transaction']
@@ -123,6 +129,7 @@ class PosOrderCustom(models.Model):
         
         # Tích điểm cho đơn hàng
         if self.loyalty_points_earned > 0:
+            _logger.info(f"✅ Creating earn transaction: {self.loyalty_points_earned} points")
             transaction = Transaction.create({
                 'card_id': self.loyalty_card_id.id,
                 'transaction_type': 'earn',
@@ -133,6 +140,7 @@ class PosOrderCustom(models.Model):
                 'state': 'confirmed',
             })
             self.loyalty_transaction_id = transaction.id
+            _logger.info(f"✅ Transaction created: {transaction.id}, card total points now: {self.loyalty_card_id.total_points}")
     
     def _prepare_invoice_vals(self):
         """Override để thêm giảm giá từ điểm vào hóa đơn"""
@@ -161,6 +169,162 @@ class PosOrderCustom(models.Model):
             order._process_loyalty_points()
         
         return result
+    
+    @api.model
+    def create(self, vals):
+        """Override create để tự động tích điểm"""
+        import logging
+        _logger = logging.getLogger(__name__)
+        
+        _logger.info(f"🔵 POS Order create called: partner_id={vals.get('partner_id')}, amount_total={vals.get('amount_total')}")
+        
+        # Tạo order
+        order = super().create(vals)
+        
+        _logger.info(f"🟢 Order created: {order.name}, state={order.state}, partner={order.partner_id.name if order.partner_id else None}")
+        
+        # Tích điểm nếu có khách hàng
+        if order.partner_id and order.amount_total > 0 and order.state in ('paid', 'done', 'invoiced'):
+            _logger.info(f"💰 Processing loyalty for order {order.name}")
+            
+            # Tự động tìm hoặc tạo loyalty card
+            card = self.env['customer.loyalty.card'].search([
+                ('partner_id', '=', order.partner_id.id),
+                ('state', '=', 'active')
+            ], limit=1)
+            
+            if not card:
+                default_program = self.env['customer.loyalty.program'].search([
+                    ('active', '=', True)
+                ], order='sequence', limit=1)
+                
+                if default_program:
+                    _logger.info(f"🆕 Creating loyalty card for {order.partner_id.name}")
+                    card = self.env['customer.loyalty.card'].create({
+                        'partner_id': order.partner_id.id,
+                        'program_id': default_program.id,
+                    })
+            
+            if card:
+                order.loyalty_card_id = card.id
+                program = card.program_id
+                points_earned = program.calculate_points_from_amount(order.amount_total)
+                
+                if points_earned > 0:
+                    _logger.info(f"💎 Earning {points_earned} points")
+                    transaction = self.env['customer.loyalty.transaction'].create({
+                        'card_id': card.id,
+                        'transaction_type': 'earn',
+                        'points': points_earned,
+                        'pos_order_id': order.id,
+                        'order_amount': order.amount_total,
+                        'note': _('Tích điểm từ đơn hàng %s') % order.name,
+                        'state': 'confirmed',
+                    })
+                    order.write({
+                        'loyalty_points_earned': points_earned,
+                        'loyalty_transaction_id': transaction.id,
+                    })
+                    _logger.info(f"✅ Done! Card {card.card_number} now has {card.total_points} points")
+        
+        return order
+    
+    @api.model
+    def create_from_ui(self, orders, draft=False):
+        """Override để tự động tích điểm khi tạo order từ POS UI"""
+        import logging
+        _logger = logging.getLogger(__name__)
+        
+        _logger.info(f"🎯 create_from_ui called with {len(orders)} orders, draft={draft}")
+        
+        # Gọi method gốc để tạo orders
+        order_ids = super().create_from_ui(orders, draft=draft)
+        
+        # Xử lý tích điểm cho mỗi order vừa tạo
+        created_orders = self.env['pos.order'].browse([o['id'] for o in order_ids])
+        
+        for order in created_orders:
+            _logger.info(f"✅ Processing order {order.name}: state={order.state}, partner={order.partner_id.name if order.partner_id else None}, amount={order.amount_total}")
+            
+            # Tích điểm nếu có khách hàng và có tổng tiền
+            if order.partner_id and order.amount_total > 0:
+                # Tự động tìm hoặc tạo loyalty card cho khách hàng
+                card = self.env['customer.loyalty.card'].search([
+                    ('partner_id', '=', order.partner_id.id),
+                    ('state', '=', 'active')
+                ], limit=1)
+                
+                # Nếu không có card, tự động tạo mới với program mặc định
+                if not card:
+                    default_program = self.env['customer.loyalty.program'].search([
+                        ('active', '=', True)
+                    ], order='sequence', limit=1)
+                    
+                    if default_program:
+                        _logger.info(f"🆕 Creating new loyalty card for {order.partner_id.name}")
+                        card = self.env['customer.loyalty.card'].create({
+                            'partner_id': order.partner_id.id,
+                            'program_id': default_program.id,
+                        })
+                
+                if card:
+                    order.loyalty_card_id = card.id
+                    
+                    # 1. Xử lý ĐỔI ĐIỂM (REDEEM) trước - kiểm tra order lines có discount từ loyalty không
+                    loyalty_discount_product = self.env['pos.config'].browse(order.session_id.config_id.id).loyalty_discount_product_id
+                    redeem_points = 0
+                    discount_amount = 0
+                    
+                    if loyalty_discount_product:
+                        for line in order.lines:
+                            if line.product_id.id == loyalty_discount_product.id and line.price_unit < 0:
+                                discount_amount = abs(line.price_unit * line.qty)
+                                # 100 điểm = 1000đ => 1 điểm = 10đ
+                                redeem_points = int(discount_amount / 10)
+                                _logger.info(f"🎁 Found loyalty discount line: -{discount_amount}đ = {redeem_points} points")
+                                break
+                    
+                    # Nếu có đổi điểm, tạo redeem transaction
+                    if redeem_points > 0:
+                        _logger.info(f"💎 Creating redeem transaction: -{redeem_points} points for {discount_amount}đ discount")
+                        redeem_transaction = self.env['customer.loyalty.transaction'].create({
+                            'card_id': card.id,
+                            'transaction_type': 'redeem',
+                            'points': -redeem_points,  # Điểm âm = trừ điểm
+                            'pos_order_id': order.id,
+                            'order_amount': order.amount_total,
+                            'note': _('Đổi %s điểm lấy giảm giá %s đ từ đơn hàng %s') % (redeem_points, discount_amount, order.name),
+                            'state': 'confirmed',
+                        })
+                        order.write({
+                            'loyalty_points_used': redeem_points,
+                            'loyalty_discount_amount': discount_amount,
+                        })
+                        _logger.info(f"✅ Points redeemed! Card {card.card_number} now has {card.total_points} points")
+                    
+                    # 2. Tính và tạo transaction TÍCH ĐIỂM (EARN) - tính trên số tiền THỰC tế sau giảm giá
+                    program = card.program_id
+                    actual_amount = order.amount_total  # Tổng tiền thực tế sau khi đã trừ discount
+                    points_earned = program.calculate_points_from_amount(actual_amount)
+                    
+                    if points_earned > 0:
+                        _logger.info(f"💎 Creating earn transaction: {points_earned} points for order {order.name}")
+                        earn_transaction = self.env['customer.loyalty.transaction'].create({
+                            'card_id': card.id,
+                            'transaction_type': 'earn',
+                            'points': points_earned,
+                            'pos_order_id': order.id,
+                            'order_amount': actual_amount,
+                            'note': _('Tích điểm từ đơn hàng %s') % order.name,
+                            'state': 'confirmed',
+                        })
+                        order.write({
+                            'loyalty_points_earned': points_earned,
+                            'loyalty_transaction_id': earn_transaction.id,
+                        })
+                        _logger.info(f"✅ Points earned! Card {card.card_number} now has {card.total_points} points")
+        
+        return order_ids
 
 
 class PosOrderLineCustom(models.Model):
@@ -206,4 +370,17 @@ class PosConfig(models.Model):
         string='Ngưỡng cảnh báo tồn kho',
         default=10.0,
         help='Số lượng tối thiểu để cảnh báo'
+    )
+    
+    # Tích điểm
+    enable_loyalty = fields.Boolean(
+        string='Kích hoạt tích điểm',
+        default=True,
+        help='Cho phép tích điểm và đổi điểm tại POS'
+    )
+    
+    loyalty_discount_product_id = fields.Many2one(
+        'product.product',
+        string='Sản phẩm giảm giá từ điểm',
+        help='Sản phẩm dùng để tạo dòng giảm giá khi đổi điểm'
     )

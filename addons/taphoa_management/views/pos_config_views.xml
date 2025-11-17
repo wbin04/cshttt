@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Thêm cấu hình loyalty vào POS Config -->
+    <record id="view_pos_config_form_loyalty" model="ir.ui.view">
+        <field name="name">pos.config.form.loyalty</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Thêm vào cuối form -->
+            <xpath expr="//sheet" position="inside">
+                <group string="Tích điểm khách hàng">
+                    <group>
+                        <field name="enable_loyalty"/>
+                    </group>
+                    <group>
+                        <field name="loyalty_discount_product_id" 
+                               invisible="not enable_loyalty"
+                               options="{'no_create': True}"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

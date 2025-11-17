@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="taphoa_management.LoyaltyPopup" owl="1">
+        <div class="popup loyalty-popup">
+            <header class="popup-header">
+                <h3 class="title"><t t-esc="props.title"/></h3>
+            </header>
+            
+            <main class="popup-body loyalty-popup-body">
+                <!-- Thông tin điểm hiện tại -->
+                <div class="loyalty-info-section">
+                    <div class="loyalty-info-row">
+                        <strong>Điểm hiện tại:</strong>
+                        <span class="loyalty-points-current">
+                            <t t-esc="currentPoints"/> điểm
+                        </span>
+                    </div>
+                    
+                    <div class="loyalty-info-row">
+                        <strong>Tổng đơn hàng:</strong>
+                        <span class="loyalty-order-total">
+                            <t t-esc="orderTotal.toLocaleString('vi-VN')"/> đ
+                        </span>
+                    </div>
+                    
+                    <div class="loyalty-info-row highlight">
+                        <strong>Điểm sẽ tích:</strong>
+                        <span class="loyalty-points-earn" style="color: #28a745; font-weight: bold;">
+                            +<t t-esc="pointsToEarn"/> điểm
+                        </span>
+                    </div>
+                    
+                    <div class="loyalty-explanation" style="color: #6c757d; margin-top: 10px; font-size: 0.9em; border-top: 1px solid #ddd; padding-top: 10px; margin-bottom: 15px;">
+                        <em><t t-esc="explanation"/></em>
+                    </div>
+                </div>
+                
+                <!-- Đổi điểm section -->
+                <div class="loyalty-redeem-section" style="border-top: 2px solid #007bff; padding-top: 15px; margin-top: 15px;">
+                    <h4 style="color: #007bff; margin-bottom: 10px;">🎁 Đổi điểm lấy giảm giá</h4>
+                    
+                    <div class="loyalty-info-row" style="margin-bottom: 10px;">
+                        <span style="font-size: 0.9em; color: #6c757d;">
+                            100 điểm = 1,000đ giảm giá
+                        </span>
+                    </div>
+                    
+                    <div class="loyalty-redeem-input-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <label style="min-width: 100px;">Số điểm đổi:</label>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            style="flex: 1; padding: 8px;"
+                            t-model="state.redeemPoints"
+                            t-on-input="onRedeemPointsChange"
+                            step="100"
+                            min="0"
+                            t-att-max="maxRedeemPoints"
+                            placeholder="0"
+                        />
+                        <span style="min-width: 80px; color: #6c757d;">
+                            (Max: <t t-esc="maxRedeemPoints"/>)
+                        </span>
+                    </div>
+                    
+                    <div class="loyalty-info-row" style="background: #e7f3ff; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                        <strong>Giảm giá:</strong>
+                        <span style="color: #dc3545; font-weight: bold; font-size: 1.1em;">
+                            -<t t-esc="state.discountAmount.toLocaleString('vi-VN')"/> đ
+                        </span>
+                    </div>
+                    
+                    <div class="loyalty-info-row" style="background: #fff3cd; padding: 10px; border-radius: 5px;">
+                        <strong>Tổng tiền sau giảm:</strong>
+                        <span style="color: #856404; font-weight: bold; font-size: 1.1em;">
+                            <t t-esc="finalOrderTotal.toLocaleString('vi-VN')"/> đ
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Tổng kết điểm sau giao dịch -->
+                <div class="loyalty-summary-section" style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: 15px;">
+                    <div class="loyalty-info-row total" style="background: #d4edda; padding: 12px; border-radius: 5px;">
+                        <strong>Điểm cuối cùng:</strong>
+                        <span class="loyalty-points-final" style="color: #155724; font-weight: bold; font-size: 1.2em;">
+                            <t t-esc="pointsAfterRedeem"/> điểm
+                        </span>
+                    </div>
+                    <div style="font-size: 0.85em; color: #6c757d; margin-top: 8px; text-align: center;">
+                        = <t t-esc="currentPoints"/> (hiện tại) - <t t-esc="state.redeemPoints"/> (đổi) + <t t-esc="pointsToEarn"/> (tích mới)
+                    </div>
+                </div>
+            </main>
+            
+            <footer class="popup-footer">
+                <button class="btn btn-primary confirm" t-on-click="confirm">
+                    <t t-if="state.redeemPoints > 0">Áp dụng giảm giá</t>
+                    <t t-else=""><t t-esc="props.confirmText || 'OK'"/></t>
+                </button>
+                <button class="btn btn-secondary cancel" t-on-click="cancel">
+                    <t t-esc="props.cancelText || 'Đóng'"/>
+                </button>
+            </footer>
+        </div>
+    </t>
+
+</templates>
