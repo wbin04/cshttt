@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree view cho Quản lí sản phẩm -->
+    <record id="view_product_management_tree" model="ir.ui.view">
+        <field name="name">product.product.management.tree</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <tree string="Quản lí sản phẩm">
+                <field name="default_code" string="Mã sản phẩm" optional="show"/>
+                <field name="name" string="Tên sản phẩm"/>
+                <field name="barcode" string="Mã vạch" optional="show"/>
+                <field name="categ_id" string="Danh mục" optional="show"/>
+                <field name="qty_available" string="Tồn kho" optional="show"/>
+                <field name="list_price" string="Giá bán" optional="show"/>
+                <field name="standard_price" string="Giá vốn" optional="hide"/>
+                <field name="tracking" string="Theo dõi lô" optional="show" widget="badge"
+                       decoration-info="tracking == 'lot'"
+                       decoration-success="tracking == 'serial'"/>
+                <field name="lot_count" string="Số lô hàng" optional="show"/>
+                <field name="active" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form view cho Quản lí sản phẩm - HIỂN THỊ CHI TIẾT LÔ HÀNG VÀ HSD -->
+    <record id="view_product_management_form" model="ir.ui.view">
+        <field name="name">product.product.management.form</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <form string="Quản lí sản phẩm">
+                <sheet>
+                    <field name="id" invisible="1"/>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name" string="Tên sản phẩm"/>
+                        <h1>
+                            <field name="name" placeholder="Tên sản phẩm"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Thông tin cơ bản">
+                            <field name="default_code" string="Mã sản phẩm"/>
+                            <field name="barcode" string="Mã vạch"/>
+                            <field name="categ_id" string="Danh mục"/>
+                            <field name="uom_id" string="Đơn vị" groups="uom.group_uom"/>
+                            <field name="list_price" string="Giá bán"/>
+                            <field name="standard_price" string="Giá vốn"/>
+                        </group>
+                        <group string="Tồn kho">
+                            <field name="type" string="Loại sản phẩm"/>
+                            <field name="qty_available" string="Số lượng tồn kho"/>
+                            <field name="virtual_available" string="Dự báo tồn kho"/>
+                            <field name="tracking" string="Theo dõi" widget="radio"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <!-- TAB QUẢN LÝ LÔ HÀNG VÀ HSD -->
+                        <page string="📦 Quản lý Lô hàng &amp; HSD" name="lot_expiry">
+                            <group>
+                                <group string="Cấu hình theo dõi lô">
+                                    <field name="tracking" widget="radio" string="Phương thức theo dõi"/>
+                                    <field name="product_tmpl_id" invisible="1"/>
+                                    <field name="use_expiration_date" string="✓ Sử dụng hạn sử dụng" related="product_tmpl_id.use_expiration_date" readonly="0"/>
+                                </group>
+                                <group string="Cấu hình thời gian HSD" invisible="not use_expiration_date">
+                                    <field name="expiration_time" string="⏰ Thời hạn sử dụng (ngày)" related="product_tmpl_id.expiration_time" readonly="0"/>
+                                    <field name="use_time" string="⭐ Thời gian sử dụng tốt nhất (ngày)" related="product_tmpl_id.use_time" readonly="0"/>
+                                    <field name="removal_time" string="🗑️ Thời gian loại bỏ (ngày)" related="product_tmpl_id.removal_time" readonly="0"/>
+                                    <field name="alert_time" string="⚠️ Thời gian cảnh báo (ngày)" related="product_tmpl_id.alert_time" readonly="0"/>
+                                </group>
+                            </group>
+                            
+                            <separator string="📋 Danh sách Lô hàng/Serial hiện có"/>
+                            <field name="lot_ids" mode="tree" readonly="1" context="{'default_product_id': id}">
+                                <tree string="Lô hàng/Serial" 
+                                      decoration-warning="expiration_date and (expiration_date - context_today()).days &lt;= 7 and (expiration_date - context_today()).days &gt; 0"
+                                      decoration-danger="expiration_date and expiration_date &lt; context_today()">
+                                    <field name="name" string="🏷️ Số lô/Serial"/>
+                                    <field name="ref" string="Tham chiếu" optional="show"/>
+                                    <field name="product_qty" string="📦 Số lượng" sum="Tổng"/>
+                                    <field name="expiration_date" string="📅 Hạn sử dụng" optional="show"/>
+                                    <field name="use_date" string="⭐ Ngày sử dụng tốt nhất" optional="hide"/>
+                                    <field name="removal_date" string="🗑️ Ngày loại bỏ" optional="hide"/>
+                                    <field name="alert_date" string="⚠️ Ngày cảnh báo" optional="hide"/>
+                                    <field name="company_id" invisible="1"/>
+                                </tree>
+                            </field>
+                            
+                            <div class="alert alert-info" role="alert" style="margin-top: 10px;">
+                                <strong>💡 Ghi chú:</strong>
+                                <ul>
+                                    <li>🔴 Dòng màu đỏ: Lô hàng đã hết hạn</li>
+                                    <li>🟡 Dòng màu vàng: Lô hàng sắp hết hạn (còn ≤ 7 ngày)</li>
+                                    <li>Để tạo lô hàng mới, vui lòng sử dụng chức năng Nhập kho hoặc Kiểm kê</li>
+                                </ul>
+                            </div>
+                        </page>
+                        
+                        <page string="Thông tin chung" name="general_info">
+                            <group>
+                                <group string="Bán hàng">
+                                    <field name="sale_ok" string="Có thể bán"/>
+                                    <field name="available_in_pos" string="Hiển thị trong POS"/>
+                                    <field name="pos_categ_ids" widget="many2many_tags" 
+                                           string="Danh mục POS"
+                                           invisible="not available_in_pos"/>
+                                </group>
+                                <group string="Mua hàng">
+                                    <field name="purchase_ok" string="Có thể mua"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Nhà cung cấp" name="suppliers">
+                            <field name="seller_ids">
+                                <tree string="Nhà cung cấp" editable="bottom">
+                                    <field name="partner_id" string="Nhà cung cấp" 
+                                           domain="[('supplier_rank', '>', 0)]"/>
+                                    <field name="product_name" string="Tên sản phẩm của NCC" optional="show"/>
+                                    <field name="product_code" string="Mã sản phẩm của NCC" optional="show"/>
+                                    <field name="min_qty" string="Số lượng tối thiểu"/>
+                                    <field name="price" string="Giá"/>
+                                    <field name="delay" string="Thời gian giao hàng"/>
+                                    <field name="company_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <page string="Ghi chú" name="notes">
+                            <field name="description" placeholder="Mô tả sản phẩm..."/>
+                            <field name="description_purchase" string="Mô tả mua hàng" 
+                                   placeholder="Mô tả hiển thị khi mua hàng..."/>
+                            <field name="description_sale" string="Mô tả bán hàng"
+                                   placeholder="Mô tả hiển thị khi bán hàng..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view cho Quản lí sản phẩm -->
+    <record id="view_product_management_search" model="ir.ui.view">
+        <field name="name">product.product.management.search</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm sản phẩm">
+                <field name="name" string="Sản phẩm" filter_domain="['|','|',('default_code','ilike',self),('name','ilike',self),('barcode','ilike',self)]"/>
+                <field name="categ_id" string="Danh mục" filter_domain="[('categ_id','child_of',self)]"/>
+                <field name="tracking" string="Theo dõi"/>
+                
+                <filter string="Có thể bán" name="filter_sale_ok" domain="[('sale_ok','=',True)]"/>
+                <filter string="Hiển thị POS" name="filter_pos" domain="[('available_in_pos','=',True)]"/>
+                <filter string="Có theo dõi lô" name="filter_tracking" domain="[('tracking','!=','none')]"/>
+                <filter string="Có HSD" name="filter_expiry" domain="[('product_tmpl_id.use_expiration_date','=',True)]"/>
+                
+                <separator/>
+                <filter string="Còn hàng" name="filter_in_stock" domain="[('qty_available','>',0)]"/>
+                <filter string="Hết hàng" name="filter_out_stock" domain="[('qty_available','&lt;=',0)]"/>
+                
+                <separator/>
+                <filter string="Đang hoạt động" name="filter_active" domain="[('active','=',True)]"/>
+                <filter string="Đã lưu trữ" name="filter_archived" domain="[('active','=',False)]"/>
+                
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Danh mục" name="group_categ" context="{'group_by':'categ_id'}"/>
+                    <filter string="Loại sản phẩm" name="group_type" context="{'group_by':'type'}"/>
+                    <filter string="Theo dõi" name="group_tracking" context="{'group_by':'tracking'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action cho Quản lí sản phẩm -->
+    <record id="action_product_management" model="ir.actions.act_window">
+        <field name="name">Quản lí sản phẩm</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_product_management_search"/>
+        <field name="context">{
+            'default_sale_ok': True,
+            'default_available_in_pos': True,
+            'default_type': 'product',
+            'search_default_filter_active': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo sản phẩm mới
+            </p>
+            <p>
+                Quản lí sản phẩm với theo dõi lô hàng và hạn sử dụng.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action view cho Tree -->
+    <record id="action_product_management_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_product_management_tree"/>
+        <field name="act_window_id" ref="action_product_management"/>
+    </record>
+
+    <!-- Action view cho Form -->
+    <record id="action_product_management_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_product_management_form"/>
+        <field name="act_window_id" ref="action_product_management"/>
+    </record>
+
+</odoo>

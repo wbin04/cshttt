@@ -93,11 +93,33 @@ class ProductProduct(models.Model):
         ('low_stock', 'Sắp hết'),
         ('out_of_stock', 'Hết hàng')
     ], string='Trạng thái tồn kho', compute='_compute_stock_status')
+    
+    lot_count = fields.Integer(
+        string='Số lô hàng',
+        compute='_compute_lot_count'
+    )
+    
+    lot_ids = fields.One2many(
+        'stock.lot',
+        'product_id',
+        string='Lô hàng/Serial Numbers'
+    )
 
     @api.depends('qty_available')
     def _compute_current_stock(self):
         for product in self:
             product.current_stock = product.qty_available
+    
+    def _compute_lot_count(self):
+        """Đếm số lượng lô hàng/serial numbers của sản phẩm"""
+        for product in self:
+            if product.tracking != 'none':
+                lot_count = self.env['stock.lot'].search_count([
+                    ('product_id', '=', product.id)
+                ])
+                product.lot_count = lot_count
+            else:
+                product.lot_count = 0
 
     def _search_current_stock(self, operator, value):
         products = self.search([])

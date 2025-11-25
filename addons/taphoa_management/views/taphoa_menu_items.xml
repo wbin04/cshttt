@@ -75,7 +75,7 @@
     <menuitem id="menu_product"
               name="Sản phẩm"
               parent="menu_taphoa_config"
-              action="product.product_normal_action_sell"
+              action="taphoa_management.action_product_management"
               sequence="10"/>
 
     <menuitem id="menu_partner"
