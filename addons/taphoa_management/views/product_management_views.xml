@@ -76,8 +76,8 @@
                             <separator string="📋 Danh sách Lô hàng/Serial hiện có"/>
                             <field name="lot_ids" mode="tree" readonly="1" context="{'default_product_id': id}">
                                 <tree string="Lô hàng/Serial" 
-                                      decoration-warning="expiration_date and (expiration_date - context_today()).days &lt;= 7 and (expiration_date - context_today()).days &gt; 0"
-                                      decoration-danger="expiration_date and expiration_date &lt; context_today()">
+                                      decoration-warning="is_expiring_soon"
+                                      decoration-danger="is_expired">
                                     <field name="name" string="🏷️ Số lô/Serial"/>
                                     <field name="ref" string="Tham chiếu" optional="show"/>
                                     <field name="product_qty" string="📦 Số lượng" sum="Tổng"/>
@@ -85,6 +85,8 @@
                                     <field name="use_date" string="⭐ Ngày sử dụng tốt nhất" optional="hide"/>
                                     <field name="removal_date" string="🗑️ Ngày loại bỏ" optional="hide"/>
                                     <field name="alert_date" string="⚠️ Ngày cảnh báo" optional="hide"/>
+                                    <field name="is_expired" column_invisible="1"/>
+                                    <field name="is_expiring_soon" column_invisible="1"/>
                                     <field name="company_id" invisible="1"/>
                                 </tree>
                             </field>

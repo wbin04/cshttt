@@ -71,13 +71,15 @@
               action="point_of_sale.action_pos_pos_form"
               sequence="40"/>
 
-    <!-- Configuration Menu Items -->
+    <!-- Menu Sản phẩm - cùng cấp với menu chính -->
     <menuitem id="menu_product"
               name="Sản phẩm"
-              parent="menu_taphoa_config"
+              parent="menu_taphoa_root"
               action="taphoa_management.action_product_management"
-              sequence="10"/>
+              sequence="35"
+              groups="group_taphoa_manager"/>
 
+    <!-- Configuration Menu Items -->
     <menuitem id="menu_partner"
               name="Đối tác"
               parent="menu_taphoa_config"

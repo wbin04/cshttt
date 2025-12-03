@@ -7,3 +7,5 @@ venv/
 
 odoo.conf
 
+.venv/
+

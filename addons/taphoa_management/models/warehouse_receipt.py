@@ -194,14 +194,120 @@ class WarehouseReceipt(models.Model):
                 picking_vals['move_ids_without_package'].append((0, 0, move_vals))
             
             picking = self.env['stock.picking'].create(picking_vals)
+            _logger.info(f"Sau create, picking có {len(picking.move_ids)} moves: {picking.move_ids.ids}")
+            
             picking.action_confirm()
-            picking.action_assign()
+            _logger.info(f"Sau action_confirm, picking có {len(picking.move_ids)} moves: {picking.move_ids.ids}")
+            # KHÔNG gọi action_assign() để tránh tạo move_lines tự động
             
-            # Tự động xác nhận số lượng
+            _logger.info(f"Đã tạo picking {picking.name} với {len(picking.move_ids)} moves")
+            _logger.info(f"Receipt có {len(record.line_ids)} dòng sản phẩm")
             for move in picking.move_ids:
-                move.quantity = move.product_uom_qty
+                _logger.info(f"  - Move {move.id}: {move.product_id.display_name}, qty={move.product_uom_qty}")
             
-            picking.button_validate()
+            # Xử lý số lô/sê-ri cho các sản phẩm có tracking
+            missing_lots = []
+            for line in record.line_ids:
+                moves = picking.move_ids.filtered(lambda m: m.product_id == line.product_id)
+                if not moves:
+                    _logger.warning(f"Không tìm thấy move cho sản phẩm: {line.product_id.display_name}")
+                    continue
+                
+                # Log số lượng moves tìm thấy
+                _logger.info(f"Tìm thấy {len(moves)} move(s) cho {line.product_id.display_name}: IDs={moves.ids}")
+                
+                # Nếu sản phẩm yêu cầu tracking
+                if line.product_id.tracking != 'none':
+                    if not line.lot_name:
+                        missing_lots.append(f" - {line.product_id.display_name}")
+                        _logger.warning(f"Sản phẩm {line.product_id.display_name} thiếu số lô!")
+                        continue
+                        
+                    # Tìm hoặc tạo lot/serial number
+                    lot = self.env['stock.lot'].search([
+                        ('name', '=', line.lot_name),
+                        ('product_id', '=', line.product_id.id),
+                        ('company_id', '=', self.env.company.id)
+                    ], limit=1)
+                    
+                    if not lot:
+                        lot = self.env['stock.lot'].create({
+                            'name': line.lot_name,
+                            'product_id': line.product_id.id,
+                            'company_id': self.env.company.id,
+                        })
+                        _logger.info(f"Đã tạo lot mới: {lot.name} (id={lot.id})")
+                    else:
+                        _logger.info(f"Sử dụng lot có sẵn: {lot.name} (id={lot.id})")
+                    
+                    # Xử lý TẤT CẢ các moves của sản phẩm này
+                    for move in moves:
+                        _logger.info(f"Xử lý move_id={move.id} cho {line.product_id.display_name}")
+                        
+                        # Tạo move line mới với lot
+                        _logger.info(f"Tạo move_line mới cho move_id={move.id} với lot_id={lot.id}, quantity={line.quantity}")
+                        self.env['stock.move.line'].create({
+                            'move_id': move.id,
+                            'product_id': line.product_id.id,
+                            'lot_id': lot.id,
+                            'quantity': line.quantity,
+                            'picked': True,
+                            'product_uom_id': line.product_id.uom_id.id,
+                            'location_id': location_src_id,
+                            'location_dest_id': location_dest_id,
+                            'picking_id': picking.id,
+                        })
+                else:
+                    # Không có tracking - tạo move line cho tất cả moves
+                    for move in moves:
+                        _logger.info(f"Tạo move_line cho sản phẩm không tracking: move_id={move.id}, quantity={line.quantity}")
+                        self.env['stock.move.line'].create({
+                            'move_id': move.id,
+                            'product_id': line.product_id.id,
+                            'quantity': line.quantity,
+                            'picked': True,
+                            'product_uom_id': line.product_id.uom_id.id,
+                            'location_id': location_src_id,
+                            'location_dest_id': location_dest_id,
+                            'picking_id': picking.id,
+                        })
+            
+            # Refresh picking để lấy dữ liệu mới nhất
+            picking.invalidate_recordset()
+            
+            _logger.info(f"Sau khi xử lý lot, picking có {len(picking.move_ids)} moves: IDs={picking.move_ids.ids}")
+            
+            # Kiểm tra lại xem tất cả move lines có lot chưa
+            for move in picking.move_ids:
+                _logger.info(f"Kiểm tra move {move.id}: product={move.product_id.display_name}, tracking={move.product_id.tracking}, move_lines={len(move.move_line_ids)}")
+                if move.product_id.tracking != 'none':
+                    if not move.move_line_ids or not any(ml.lot_id for ml in move.move_line_ids):
+                        if move.product_id.display_name not in [ml.split(' - ')[1] for ml in missing_lots]:
+                            missing_lots.append(f" - {move.product_id.display_name}")
+                            _logger.error(f"Move {move.id} cho {move.product_id.display_name} vẫn thiếu lot sau khi xử lý!")
+                    else:
+                        _logger.info(f"Move {move.id} đã có lot: {[ml.lot_id.name for ml in move.move_line_ids if ml.lot_id]}")
+            
+            # Kiểm tra nếu có sản phẩm thiếu lot
+            if missing_lots:
+                raise UserError(_('Bạn cần cung cấp Số lô/sê-ri cho sản phẩm: \n%s') % '\n'.join(missing_lots))
+            
+            # Validate picking trực tiếp thay vì dùng button_validate để tránh tạo thêm moves
+            _logger.info(f"Đang validate picking {picking.name}...")
+            
+            # Đảm bảo tất cả move lines có picked=True
+            for move in picking.move_ids:
+                _logger.info(f"Kiểm tra move {move.id}: product={move.product_id.display_name}, quantity={move.product_uom_qty}, tracking={move.product_id.tracking}")
+                for move_line in move.move_line_ids:
+                    _logger.info(f"  - move_line {move_line.id}: quantity={move_line.quantity}, picked={move_line.picked}, lot={move_line.lot_id.name if move_line.lot_id else 'None'}")
+            
+            # Dùng với context skip_backorder và skip_sms để validate trực tiếp
+            picking_with_context = picking.with_context(skip_backorder=True, skip_sms=True)
+            res = picking_with_context.button_validate()
+            
+            # Nếu vẫn trả về wizard, bỏ qua
+            if not isinstance(res, dict):
+                _logger.info(f"Đã validate picking {picking.name} thành công!")
             
             # Lấy % lợi nhuận từ phiếu nhập (mặc định 20%)
             profit_margin = record.profit_margin or 20.0

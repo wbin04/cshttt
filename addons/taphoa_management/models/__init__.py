@@ -8,3 +8,4 @@ from . import accounting_report
 from . import product_template
 from . import manager_dashboard
 from . import customer_loyalty
+from . import stock_lot
