@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from datetime import datetime, timedelta
 
 
 class ManagerDashboard(models.Model):
@@ -65,50 +64,67 @@ class ManagerDashboard(models.Model):
         default=lambda self: self.env.company.currency_id
     )
 
-    @api.depends('name')
+    @api.model
+    def _ensure_dashboard_exists(self):
+        """Đảm bảo có ít nhất 1 dashboard record"""
+        if not self.search([], limit=1):
+            self.create({'name': 'Dashboard'})
+
     def _compute_statistics(self):
         """Tính toán các thống kê"""
         for record in self:
-            today = fields.Date.today()
-            month_start = today.replace(day=1)
-            
-            # POS Orders today
-            pos_orders_today = self.env['pos.order'].search([
-                ('date_order', '>=', fields.Datetime.now().replace(hour=0, minute=0, second=0)),
-                ('state', 'in', ['paid', 'done', 'invoiced'])
-            ])
-            record.total_pos_orders_today = len(pos_orders_today)
-            record.total_revenue_today = sum(pos_orders_today.mapped('amount_total'))
-            
-            # POS Orders this month
-            pos_orders_month = self.env['pos.order'].search([
-                ('date_order', '>=', month_start),
-                ('state', 'in', ['paid', 'done', 'invoiced'])
-            ])
-            record.total_pos_orders_month = len(pos_orders_month)
-            record.total_revenue_month = sum(pos_orders_month.mapped('amount_total'))
-            
-            # Purchase Orders (draft, sent, to approve)
-            purchase_orders = self.env['purchase.order'].search([
-                ('state', 'in', ['draft', 'sent', 'to approve'])
-            ])
-            record.total_purchase_orders = len(purchase_orders)
-            record.total_purchase_amount = sum(purchase_orders.mapped('amount_total'))
-            
-            # Warehouse receipts (draft)
-            warehouse_receipts = self.env['taphoa.warehouse.receipt'].search([
-                ('state', '=', 'draft')
-            ])
-            record.total_warehouse_receipts = len(warehouse_receipts)
-            record.total_warehouse_amount = sum(warehouse_receipts.mapped('total_amount'))
-            
-            # Low stock products (qty < 10)
-            products = self.env['product.product'].search([
-                ('qty_available', '<', 10),
-                ('qty_available', '>', 0),
-                ('type', '=', 'product')
-            ])
-            record.low_stock_products = len(products)
+            try:
+                today = fields.Date.today()
+                month_start = today.replace(day=1)
+                
+                # POS Orders today
+                pos_orders_today = self.env['pos.order'].search([
+                    ('date_order', '>=', fields.Datetime.now().replace(hour=0, minute=0, second=0)),
+                    ('state', 'in', ['paid', 'done', 'invoiced'])
+                ])
+                record.total_pos_orders_today = len(pos_orders_today)
+                record.total_revenue_today = sum(pos_orders_today.mapped('amount_total')) if pos_orders_today else 0.0
+                
+                # POS Orders this month
+                pos_orders_month = self.env['pos.order'].search([
+                    ('date_order', '>=', month_start),
+                    ('state', 'in', ['paid', 'done', 'invoiced'])
+                ])
+                record.total_pos_orders_month = len(pos_orders_month)
+                record.total_revenue_month = sum(pos_orders_month.mapped('amount_total')) if pos_orders_month else 0.0
+                
+                # Purchase Orders (draft, sent, to approve)
+                purchase_orders = self.env['purchase.order'].search([
+                    ('state', 'in', ['draft', 'sent', 'to approve'])
+                ])
+                record.total_purchase_orders = len(purchase_orders)
+                record.total_purchase_amount = sum(purchase_orders.mapped('amount_total')) if purchase_orders else 0.0
+                
+                # Warehouse receipts (draft)
+                warehouse_receipts = self.env['taphoa.warehouse.receipt'].search([
+                    ('state', '=', 'draft')
+                ])
+                record.total_warehouse_receipts = len(warehouse_receipts)
+                record.total_warehouse_amount = sum(warehouse_receipts.mapped('total_amount')) if warehouse_receipts else 0.0
+                
+                # Low stock products (qty < 10)
+                products = self.env['product.product'].search([
+                    ('qty_available', '<', 10),
+                    ('qty_available', '>', 0),
+                    ('type', '=', 'product')
+                ])
+                record.low_stock_products = len(products)
+            except Exception as e:
+                # Set default values if error
+                record.total_pos_orders_today = 0
+                record.total_revenue_today = 0.0
+                record.total_pos_orders_month = 0
+                record.total_revenue_month = 0.0
+                record.total_purchase_orders = 0
+                record.total_purchase_amount = 0.0
+                record.total_warehouse_receipts = 0
+                record.total_warehouse_amount = 0.0
+                record.low_stock_products = 0
 
     def action_view_pos_orders_today(self):
         """Xem đơn POS hôm nay"""
